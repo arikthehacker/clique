@@ -1,3 +1,30 @@
+/**
+ * ==============================
+ * FILE: app/signup.tsx
+ * Last Updated: 2026-05-01
+ * ==============================
+ *
+ * PURPOSE:
+ * This screen handles the early prototype sign-up flow for Clique.
+ * Users pick a username, optionally add a profile picture placeholder,
+ * and then continue into the app with that basic profile data.
+ *
+ * Includes:
+ * - Username input
+ * - Profile picture upload placeholder
+ * - Default avatar preview
+ * - Temporary GLOBAL_USER object for demo data
+ * - Route into the app with username + profile picture params
+ * - Warm Clique styling
+ *
+ * Notes:
+ * - This is currently a front-end prototype screen.
+ * - GLOBAL_USER is temporary and should be replaced later with Context,
+ *   Firebase Auth, or Firestore user profiles.
+ * - The image upload logic is currently a placeholder.
+ * - MaterialIcons is imported but not used yet, so it can be removed
+ *   or used later for an upload/edit icon.
+ */
 
 import { MaterialIcons } from '@expo/vector-icons';
 // or Ionicons, Feather, FontAwesome, etc.
@@ -12,7 +39,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 
-// We'll store user data in a global object or context for now:
+// will store user data in a global object or context for now:
 let GLOBAL_USER = {
   username: '',
   pfp: '' // path or URI
@@ -26,7 +53,7 @@ export default function SignUp() {
   const [profilePic, setProfilePic] = useState<string | null>(null);
 
   const handleUploadPic = () => {
-    // Placeholder logic - in real usage, pick from library or camera
+    // placeholder logic: in real usage, pick from library or camera
     setProfilePic('../assets/images/default-avatar.png');
   };
 

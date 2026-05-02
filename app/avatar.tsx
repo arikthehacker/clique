@@ -1,30 +1,23 @@
 
 /**
  * ===============================
- * 📄 FILE: app/avatar.tsx
- * 🗓️ Last Updated: 2025-03-28
+ *  FILE: app/avatar.tsx
+ *  Last Updated: 2025-03-28
  * ===============================
  *
- * 🌍 PURPOSE:
+ *  PURPOSE:
  * This screen allows users to upload a profile photo and pick a username.
  * Orbiting dots around the avatar follow a physics-style motion:
  *   - Slow up top (against gravity)
  *   - Speed down bottom (with gravity)
  *
- * 🔁 Includes:
+ *  Includes:
  * - Windows-style orbit animation
  * - Natural easing (gravity-inspired)
  * - No white border
  * - Haptics + KeyboardAvoidingView
  * - "Next" button only appears when username is filled
  */
-
-
-// FILE: app/avatar.tsx
-// PURPOSE: Upload avatar + custom username with orbit ring and x____ style input
-
-// FILE: app/avatar.tsx
-// PURPOSE: Avatar upload and username selection screen with orbit animation, inline username input, and photo picker
 
 import React, { useRef, useEffect, useState } from 'react';
 import {

@@ -1,28 +1,24 @@
 /**
  * ===============================
- * 📄 FILE: app/settings.tsx
- * 🗓️ Last Updated: 2025-03-28
+ * FILE: app/settings.tsx
+ * Last Updated: 2025-03-28
  * ===============================
  *
- * 🧾 PURPOSE:
+ * PURPOSE:
  * This is the slide-out settings panel for the app.
  * It matches the sidebar you sketched, with:
  *  - User, Memories, Blocked, Notifications, Reports, Questions
  *  - App info footer
  *
- * 🧠 COMPONENTS:
+ * COMPONENTS:
  *  - Pressable rows (no routing yet)
  *  - Clean layout with simple styling
  *  - Top sticky title + bottom sticky footer
  *
- * 🛠 CUSTOMIZATION NOTES:
+ * CUSTOMIZATION NOTES:
  *  - Add routing to each item using router.push()
  *  - Replace emoji icons with real SVGs/icons later
  */
-
-
-// FILE: app/settings.tsx
-// PURPOSE: This is the slide-out settings panel, updated with Feather icons and custom fonts
 
 import React from 'react';
 import {

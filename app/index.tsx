@@ -163,10 +163,10 @@ export default function WelcomeScreen() {
         <Text style={styles.subtle}>welcome to</Text>
         <Text style={styles.title}>Clique</Text>
         <Text style={styles.tap}>tap anywhere to continue</Text>
-        {/* 💥 I PUT THIS HEREEEEEE: wheat shadow background */}
+        {/* I PUT THIS HEREEEEEE: wheat shadow background */}
         <Image source={require('../assets/images/wheat-rand.png')} style={styles.shadow} />
 
-        {/* 💥 I PUT THIS HEREEEEEE: wheat hero image animated */}
+        {/* I PUT THIS HEREEEEEE: wheat hero image animated */}
         <Animated.Image
           source={require('../assets/images/wheat-right.png')}
           style={[

@@ -1,10 +1,10 @@
 /**
  * ===============================
- * 📄 FILE: app/home/UserProfileSidebar.tsx
- * 🗓️ Last Updated: 2025-03-28
+ * FILE: app/home/UserProfileSidebar.tsx
+ * Last Updated: 2025-03-28
  * ===============================
  *
- * 🎯 PURPOSE:
+ * PURPOSE:
  * A sidebar overlay that appears from the right when the user taps
  * the profile button. Mimics the style of the Settings sidebar but
  * appears on the opposite side. Displays:
@@ -14,9 +14,6 @@
  * - Customizable frame preview
  * - Handwriting-style font for username tag
  */
-
-
-// FILE: app/home/UserProfileSidebar.tsx
 
 import React, { useEffect, useRef } from 'react';
 import {

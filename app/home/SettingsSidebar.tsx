@@ -1,16 +1,14 @@
-
-
 /**
  * ===============================
- * 📄 FILE: app/home/SettingsSidebar.tsx
- * 🗓️ Last Updated: 2025-03-28
+ * FILE: app/home/SettingsSidebar.tsx
+ * Last Updated: 2025-03-28
  * ===============================
  *
- * 🎯 PURPOSE:
+ * PURPOSE:
  * Full settings sidebar overlay with built-in sections
  * instead of routed screens. Everything appears inside the drawer.
  *
- * 🧠 EMBEDDED SECTIONS:
+ * EMBEDDED SECTIONS:
  * - Add Friends
  * - Memories
  * - Blocked
@@ -18,9 +16,6 @@
  * - Reports
  * - Questions
  */
-
-// FILE: app/home/SettingsSidebar.tsx
-// PURPOSE: Full sidebar overlay for in-app settings with built-in section transitions
 
 import React, { useRef, useEffect, useState } from 'react';
 import {

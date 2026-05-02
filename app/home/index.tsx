@@ -1,45 +1,107 @@
+/**
+ * ==============================
+ * FILE: app/home/index.tsx
+ * Last Updated: 2026-05-01
+ * ==============================
+ *
+ * PURPOSE:
+ * This file controls the main logged-in home layout for Clique.
+ * It uses a swipeable tab view to switch between the Group, Memory,
+ * and Calendar sections while keeping the custom animated tab bar visible.
+ *
+ * Includes:
+ * - Main home TabView
+ * - Group tab
+ * - Memory tab
+ * - Calendar tab
+ * - Custom AnimatedTabBar
+ * - Haptic feedback when switching tabs
+ * - Settings sidebar overlay
+ * - User profile sidebar overlay
+ * - Route-param check for newly created groups
+ *
+ * Notes:
+ * - This screen acts like the main shell of the app after onboarding/login.
+ * - GroupChatScreen manages the group chat home view.
+ * - MemoryIndex is rendered directly inside the Memory tab.
+ * - MasterCalendar is rendered directly inside the Calendar tab.
+ * - Sidebars open as overlays instead of separate screens, which keeps the
+ *   home experience feeling more like one connected app space.
+ * - Some large comments are intentionally kept because they document feature
+ *   swaps made during development.
+ */
 
-// FILE: app/home/index.tsx
-// PURPOSE: Swipeable main layout with animated raindrop tab bar, integrating Group, Memory, and Master Calendar screens
-//
+import React, {
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 
-
-// FILE: app/home/index.tsx
-// PURPOSE: Swipeable main layout with animated raindrop tab bar, integrating Group, Memory, and Master Calendar screens
-
-import { StyleSheet } from 'react-native';
-import React, { useRef, useState, useEffect } from 'react';
 import {
-  View,
-  SafeAreaView,
-  Dimensions,
-  TouchableOpacity,
   Animated,
-  Text,
+  Dimensions,
+  SafeAreaView,
+  StyleSheet,
+  View,
 } from 'react-native';
+
 import * as Haptics from 'expo-haptics';
-import { TabView, SceneMap } from 'react-native-tab-view';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+
+import {
+  useLocalSearchParams,
+} from 'expo-router';
+
+import {
+  SceneMap,
+  TabView,
+} from 'react-native-tab-view';
 
 import AnimatedTabBar from '../components/AnimatedTabBar';
+import GroupChatScreen from './GroupChatScreen';
 import SettingsSidebar from './SettingsSidebar';
 import UserProfileSidebar from './UserProfileSidebar';
-import GroupChatScreen from './GroupChatScreen';
 
 // ======= BIGG ASS COMMENT: ADDED IMPORT FOR MASTER CALENDAR =======
 import MasterCalendar from '../calendar';
 // ======= END BIGG ASS COMMENT =======
 
-// ======= BIGG ASS COMMENT: NEW CalendarScreen RENDERS YOUR MASTER CALENDAR =======
-const CalendarScreen = () => <MasterCalendar />;
+// ======= BIGG ASS COMMENT: ADDED MEMORY INDEX IMPORT SO MEMORY TAB SHOWS ACTUAL MEMORY SCREEN =======
+import MemoryIndex from '../memory';
 // ======= END BIGG ASS COMMENT =======
 
 const screenWidth = Dimensions.get('window').width;
+
+type HomeRoute = {
+  key: 'group' | 'memory' | 'calendar';
+  title: string;
+};
+
+const routes: HomeRoute[] = [
+  {
+    key: 'group',
+    title: 'Group',
+  },
+  {
+    key: 'memory',
+    title: 'Memory',
+  },
+  {
+    key: 'calendar',
+    title: 'Calendar',
+  },
+];
+
+// ======= BIGG ASS COMMENT: NEW CALENDARSCREEN RENDERS YOUR MASTER CALENDAR =======
+const CalendarScreen = () => {
+  return <MasterCalendar />;
+};
+// ======= END BIGG ASS COMMENT =======
 
 // ======= BIGG ASS COMMENT: DELETE OLD MEMORYSCREEN W/ TAKE-A-MEMORY BUTTON =======
 /*
 const MemoryScreen = () => {
   const router = useRouter();
+
   return (
     <View style={styles.page}>
       <TouchableOpacity
@@ -49,7 +111,9 @@ const MemoryScreen = () => {
         }}
         style={styles.memoryButton}
       >
-        <Text style={styles.memoryText}>Take a Memory</Text>
+        <Text style={styles.memoryText}>
+          Take a Memory
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -57,30 +121,41 @@ const MemoryScreen = () => {
 */
 // ======= END BIGG ASS COMMENT =======
 
-// ======= BIGG ASS COMMENT: ADDED MemoryScreen TO RENDER MEMORY INDEX SCREEN DIRECTLY =======
-import MemoryIndex from '../memory';
-const MemoryScreen = () => <MemoryIndex />;
+// ======= BIGG ASS COMMENT: MEMORY TAB NOW RENDERS MEMORY INDEX SCREEN DIRECTLY =======
+const MemoryScreen = () => {
+  return <MemoryIndex />;
+};
 // ======= END BIGG ASS COMMENT =======
 
 export default function HomeTabs() {
-  const [index, setIndex] = useState(0);
-  const position = useRef(new Animated.Value(0)).current;
   const params = useLocalSearchParams();
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
+
+  const position = useRef(new Animated.Value(0)).current;
+
+  const [
+    index,
+    setIndex,
+  ] = useState(0);
+
+  const [
+    settingsOpen,
+    setSettingsOpen,
+  ] = useState(false);
+
+  const [
+    profileOpen,
+    setProfileOpen,
+  ] = useState(false);
 
   useEffect(() => {
+    // checks for a new group coming back from the create screen
     if (params?.newGroup) {
-      const parsed = JSON.parse(params.newGroup);
+      const parsed = JSON.parse(params.newGroup as string);
+
+      // keeping this log while the route-param flow is still being tested
       console.log('loaded new group!!', parsed);
     }
   }, [params?.newGroup]);
-
-  const routes = [
-    { key: 'group', title: 'Group' },
-    { key: 'memory', title: 'Memory' },
-    { key: 'calendar', title: 'Calendar' },
-  ];
 
   const renderScene = SceneMap({
     group: () => (
@@ -89,49 +164,72 @@ export default function HomeTabs() {
         onOpenProfile={() => setProfileOpen(true)}
       />
     ),
+
     // ======= BIGG ASS COMMENT: MEMORY TAB NOW RENDERS MemoryScreen (YOUR MEMORY GALLERY) =======
     memory: MemoryScreen,
     // ======= END BIGG ASS COMMENT =======
+
     calendar: CalendarScreen,
   });
+
+  const handleIndexChange = (newIndex: number) => {
+    setIndex(newIndex);
+
+    // little tap feedback when switching tabs
+    Haptics.selectionAsync();
+  };
 
   return (
     <SafeAreaView style={styles.safeContainer}>
       <View style={styles.container}>
         <TabView
-          navigationState={{ index, routes }}
-          renderScene={renderScene}
-          onIndexChange={(i) => {
-            setIndex(i);
-            Haptics.selectionAsync();
+          navigationState={{
+            index: index,
+            routes: routes,
           }}
-          initialLayout={{ width: screenWidth }}
+          renderScene={renderScene}
+          onIndexChange={handleIndexChange}
+          initialLayout={{
+            width: screenWidth,
+          }}
           renderTabBar={() => null}
           position={position}
         />
 
-        <AnimatedTabBar activeTab={index} setActiveTab={setIndex} />
+        <AnimatedTabBar
+          activeTab={index}
+          setActiveTab={setIndex}
+        />
 
-        {settingsOpen && <SettingsSidebar onClose={() => setSettingsOpen(false)} />}
-        {profileOpen && <UserProfileSidebar onClose={() => setProfileOpen(false)} />}
+        {settingsOpen && (
+          <SettingsSidebar onClose={() => setSettingsOpen(false)} />
+        )}
+
+        {profileOpen && (
+          <UserProfileSidebar onClose={() => setProfileOpen(false)} />
+        )}
       </View>
     </SafeAreaView>
   );
 }
 
+// main home shell styling
 const styles = StyleSheet.create({
   safeContainer: {
     flex: 1,
     backgroundColor: '#F1E3C0',
   },
+
   container: {
     flex: 1,
   },
+
   page: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
+
   // ======= BIGG ASS COMMENT: REMOVE UNUSED styles.memoryButton & memoryText =======
   /*
   memoryButton: {
@@ -139,6 +237,7 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 12,
   },
+
   memoryText: {
     color: '#fff',
     fontWeight: '600',

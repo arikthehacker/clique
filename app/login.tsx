@@ -1,3 +1,24 @@
+/**
+ * ==============================
+ * FILE: app/login.tsx
+ * Last Updated: 2026-05-01
+ * ==============================
+ *
+ * PURPOSE:
+ * This screen handles the prototype login flow for Clique.
+ * Users enter an email and password, then continue into the home screen.
+ *
+ * Includes:
+ * - Back button
+ * - Email + password inputs
+ * - Hidden password text
+ * - Continue button routing to /home
+ * - Simple warm Clique styling
+ *
+ * Notes:
+ * - This screen is currently UI-only for demo/MVP purposes.
+ * - Firebase Auth can be connected here later.
+ */
 
 import React from 'react';
 import { View, Text, TextInput, Button, StyleSheet } from 'react-native';

@@ -1,20 +1,20 @@
 /**
  * ===============================
- * 📄 FILE: app/add-friends.tsx
- * 🗓️ Last Updated: 2025-03-28
+ * FILE: app/add-friends.tsx
+ * Last Updated: 2025-03-28
  * ===============================
  *
- * 🎯 PURPOSE:
+ * PURPOSE:
  * "Add Friends" screen for searching usernames.
  * Accessed via the SettingsSidebar (not from home header).
  *
- * 🧠 FEATURES:
+ * FEATURES:
  *  - Handwritten-style “Add Friends!” title
  *  - Rounded search input
  *  - Fake username entry (placeholder for future logic)
  *  - Haptic feedback on tap
  *
- * 🛠 CUSTOMIZATION NOTES:
+ * CUSTOMIZATION NOTES:
  *  - Hook this up to Firebase search later
  *  - Add actual friend list / results below if needed
  */
@@ -54,7 +54,7 @@ export default function AddFriends() {
       <Pressable
         onPress={() => {
           Haptics.selectionAsync();
-          // You can add logic here to search or invite
+          // add logic here to search or invite
         }}
         style={styles.button}
       >

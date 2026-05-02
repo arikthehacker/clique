@@ -1,10 +1,10 @@
 /**
  * ===============================
- * 📄 FILE: app/questions.tsx
- * 🗓️ Last Updated: 2025-03-28
+ * FILE: app/questions.tsx
+ * Last Updated: 2025-03-28
  * ===============================
  *
- * 🙋 PURPOSE:
+ * PURPOSE:
  * This page collects 3 short personal questions as part of the Clique onboarding.
  * It includes:
  *   - 3 free-response text inputs
@@ -14,18 +14,18 @@
  *   - Haptic feedback for all interactions
  *   - KeyboardAvoidingView to prevent keyboard overlap
  *
- * 🧠 COMPONENTS & LOGIC:
+ * COMPONENTS & LOGIC:
  * - Local state tracks all 3 answers
  * - `allFilled` controls whether Continue is enabled
  * - Continue/Skip buttons both give haptic feedback
  * - BackButton navigates back to previous screen
  *
- * 🛠 CUSTOMIZATION NOTES:
+ * CUSTOMIZATION NOTES:
  * - Update questions by changing the placeholder text
  * - Style tweaks in StyleSheet below
  * - To route somewhere on submit: edit `handleContinue` or `handleSkip`
  *
- * 🚧 FUTURE IDEAS:
+ * FUTURE IDEAS:
  * - Save answers to Firebase
  * - Add animated transitions for input appearance
  */

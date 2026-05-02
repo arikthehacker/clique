@@ -1,14 +1,12 @@
 
 // ===============================
-// 📄 FILE: app/components/AnimatedTabBar.tsx
-// 🗓️ Last Updated: 2025-03-30
+// FILE: app/components/AnimatedTabBar.tsx
+// Last Updated: 2025-03-30
 // ===============================
 //
 // PURPOSE:
 // Bottom tab bar with animated bubble that updates
 // on tap AND swipe via `activeTab` prop
-
-
 
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect } from 'react';
