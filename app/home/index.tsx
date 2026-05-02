@@ -1,192 +1,148 @@
 
-/**
- * ===============================
- * 📄 FILE: app/home/index.tsx
- * 🗓️ Last Updated: 2025-03-28
- * ===============================
- *
- * 🏠 PURPOSE:
- * Main home screen with header, memories preview, group chats,
- * and true sidebar overlay for settings.
- *
- * 🧠 COMPONENTS:
- *  - Header with icons
- *  - Memory placeholder box
- *  - Group chat cards (static for now)
- *  - Bottom tab bar
- *  - SettingsSidebar overlay
- *
- * 🛠 CUSTOMIZATION NOTES:
- *  - Add navigation to chat pages or add-friend page
- *  - Replace fake group chat data later
- */
+// FILE: app/home/index.tsx
+// PURPOSE: Swipeable main layout with animated raindrop tab bar, integrating Group, Memory, and Master Calendar screens
+//
 
-import React, { useState } from 'react';
+
+// FILE: app/home/index.tsx
+// PURPOSE: Swipeable main layout with animated raindrop tab bar, integrating Group, Memory, and Master Calendar screens
+
+import { StyleSheet } from 'react-native';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   View,
+  SafeAreaView,
+  Dimensions,
+  TouchableOpacity,
+  Animated,
   Text,
-  StyleSheet,
-  Pressable,
-  ScrollView,
-  Image,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
+import { TabView, SceneMap } from 'react-native-tab-view';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+
+import AnimatedTabBar from '../components/AnimatedTabBar';
 import SettingsSidebar from './SettingsSidebar';
 import UserProfileSidebar from './UserProfileSidebar';
+import GroupChatScreen from './GroupChatScreen';
 
-export default function HomeScreen() {
+// ======= BIGG ASS COMMENT: ADDED IMPORT FOR MASTER CALENDAR =======
+import MasterCalendar from '../calendar';
+// ======= END BIGG ASS COMMENT =======
+
+// ======= BIGG ASS COMMENT: NEW CalendarScreen RENDERS YOUR MASTER CALENDAR =======
+const CalendarScreen = () => <MasterCalendar />;
+// ======= END BIGG ASS COMMENT =======
+
+const screenWidth = Dimensions.get('window').width;
+
+// ======= BIGG ASS COMMENT: DELETE OLD MEMORYSCREEN W/ TAKE-A-MEMORY BUTTON =======
+/*
+const MemoryScreen = () => {
+  const router = useRouter();
+  return (
+    <View style={styles.page}>
+      <TouchableOpacity
+        onPress={() => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+          router.push('/memory');
+        }}
+        style={styles.memoryButton}
+      >
+        <Text style={styles.memoryText}>Take a Memory</Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
+*/
+// ======= END BIGG ASS COMMENT =======
+
+// ======= BIGG ASS COMMENT: ADDED MemoryScreen TO RENDER MEMORY INDEX SCREEN DIRECTLY =======
+import MemoryIndex from '../memory';
+const MemoryScreen = () => <MemoryIndex />;
+// ======= END BIGG ASS COMMENT =======
+
+export default function HomeTabs() {
+  const [index, setIndex] = useState(0);
+  const position = useRef(new Animated.Value(0)).current;
+  const params = useLocalSearchParams();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
+  useEffect(() => {
+    if (params?.newGroup) {
+      const parsed = JSON.parse(params.newGroup);
+      console.log('loaded new group!!', parsed);
+    }
+  }, [params?.newGroup]);
+
+  const routes = [
+    { key: 'group', title: 'Group' },
+    { key: 'memory', title: 'Memory' },
+    { key: 'calendar', title: 'Calendar' },
+  ];
+
+  const renderScene = SceneMap({
+    group: () => (
+      <GroupChatScreen
+        onOpenSettings={() => setSettingsOpen(true)}
+        onOpenProfile={() => setProfileOpen(true)}
+      />
+    ),
+    // ======= BIGG ASS COMMENT: MEMORY TAB NOW RENDERS MemoryScreen (YOUR MEMORY GALLERY) =======
+    memory: MemoryScreen,
+    // ======= END BIGG ASS COMMENT =======
+    calendar: CalendarScreen,
+  });
+
   return (
-    <View style={styles.container}>
-      {/* Top bar */}
-      <View style={styles.header}>
-        <Pressable
-          onPress={() => {
+    <SafeAreaView style={styles.safeContainer}>
+      <View style={styles.container}>
+        <TabView
+          navigationState={{ index, routes }}
+          renderScene={renderScene}
+          onIndexChange={(i) => {
+            setIndex(i);
             Haptics.selectionAsync();
-            setSettingsOpen(true);
           }}
-        >
-          <Text style={styles.icon}>⚙️</Text>
-        </Pressable>
+          initialLayout={{ width: screenWidth }}
+          renderTabBar={() => null}
+          position={position}
+        />
 
-        <Text style={styles.title}>Clique</Text>
+        <AnimatedTabBar activeTab={index} setActiveTab={setIndex} />
 
-        <Pressable
-          onPress={() => {
-            Haptics.selectionAsync();
-            setProfileOpen(true);
-          }}
-        >
-          <Text style={styles.icon}>👤</Text>
-        </Pressable>
+        {settingsOpen && <SettingsSidebar onClose={() => setSettingsOpen(false)} />}
+        {profileOpen && <UserProfileSidebar onClose={() => setProfileOpen(false)} />}
       </View>
-
-      {/* Memories placeholder */}
-      <View style={styles.memoryBox}>
-        <Text style={styles.memoryText}>
-          recent memories will show up here
-        </Text>
-      </View>
-
-      {/* Group chats */}
-      <Text style={styles.sectionTitle}>Group Chats</Text>
-      <ScrollView style={styles.chatList}>
-        {[1, 2, 3].map((item, idx) => (
-          <View key={idx} style={styles.chatCard}>
-            {idx < 2 ? (
-              <Image
-                source={{
-                  uri: `https://source.unsplash.com/random/60x60?sig=${idx}`,
-                }}
-                style={styles.chatAvatar}
-              />
-            ) : (
-              <View style={styles.chatAvatarPlaceholder} />
-            )}
-            <Text style={styles.chatName}>Group Chat Name</Text>
-            <Text style={styles.more}>⋮</Text>
-          </View>
-        ))}
-      </ScrollView>
-
-      {/* Bottom nav */}
-      <View style={styles.navbar}>
-        <Text style={styles.navIcon}>💬</Text>
-        <Text style={styles.navIcon}>🎁</Text>
-        <Text style={styles.navIcon}>📅</Text>
-      </View>
-
-      {/* Sidebars */}
-      {settingsOpen && (
-        <SettingsSidebar onClose={() => setSettingsOpen(false)} />
-      )}
-      {profileOpen && (
-        <UserProfileSidebar onClose={() => setProfileOpen(false)} />
-      )}
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeContainer: {
     flex: 1,
     backgroundColor: '#F1E3C0',
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 60,
-    paddingHorizontal: 20,
-  },
-  icon: {
-    fontSize: 22,
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: '600',
-    fontFamily: 'Cochin',
-  },
-  memoryBox: {
-    margin: 16,
-    padding: 20,
-    backgroundColor: '#fefefe',
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  memoryText: {
-    fontStyle: 'italic',
-    color: '#777',
-  },
-  sectionTitle: {
-    marginLeft: 20,
-    marginTop: 12,
-    fontSize: 18,
-    fontWeight: '500',
-  },
-  chatList: {
-    marginHorizontal: 16,
-  },
-  chatCard: {
-    backgroundColor: '#eee',
-    borderRadius: 12,
-    padding: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  chatAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginRight: 10,
-  },
-  chatAvatarPlaceholder: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginRight: 10,
-    backgroundColor: '#ccc',
-  },
-  chatName: {
+  container: {
     flex: 1,
   },
-  more: {
-    fontSize: 18,
-    color: '#888',
+  page: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  navbar: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 14,
-    backgroundColor: '#f5e8c5',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+  // ======= BIGG ASS COMMENT: REMOVE UNUSED styles.memoryButton & memoryText =======
+  /*
+  memoryButton: {
+    backgroundColor: '#b7931d',
+    padding: 14,
+    borderRadius: 12,
   },
-  navIcon: {
-    fontSize: 22,
+  memoryText: {
+    color: '#fff',
+    fontWeight: '600',
   },
+  */
+  // ======= END BIGG ASS COMMENT =======
 });
-

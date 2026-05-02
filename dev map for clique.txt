@@ -1,0 +1,467 @@
+YESS I REMEMBERRRRR 😭🧠🗓️📸
+
+Let’s expand your dev roadmap to include:
+
+---
+
+## 🌸 PHASE 3: MEMORY FEATURE — "Take a Memory" & Gallery
+
+---
+
+### 1. 📸 In-App Camera & Memory Capture
+**Feature:**
+- User taps “Take a Memory” → opens camera
+- Can take photo → edit → choose frame → post
+
+**Implications:**
+- Needs `expo-camera` + permissions
+- Option to retake or confirm
+- Apply frame overlay (cute graphic chosen by user)
+- Save memory object with:
+  ```js
+  {
+    id, uri, timestamp, frame, groupId, postedBy
+  }
+  ```
+
+---
+
+### 2. 🎞️ Frame Selection UI
+**Feature:**
+- Let user pick a cute frame before posting memory
+
+**Implications:**
+- Show scrollable frame options (stickers, overlays)
+- Live preview with selected frame
+- Frames could be image masks or background frames
+- Future: Users can unlock custom frames?
+
+---
+
+### 3. 🧠 Store Memory to Group
+**Feature:**
+- Memory is associated with a group (or all friends)
+
+**Implications:**
+- Needs metadata:
+  - Which group it belongs to
+  - Who posted it
+  - When
+- Needs backend storage (Firebase later)
+- For now: store locally per group
+
+---
+
+### 4. 🖼️ View Memories in Feed
+**Feature:**
+- Each group chat shows “recent memories” at top
+- Tapping shows full screen memory gallery
+
+**Implications:**
+- Build scrollable feed of memory thumbnails
+- Option to tap + expand
+- Group memory history view
+- Styled by frame (with animation maybe)
+
+---
+
+## 🗓️ PHASE 4: SHARED CALENDAR — Plan With Your Clique
+
+---
+
+### 1. 📅 Calendar Overview Page
+**Feature:**
+- One screen shows calendar with all group events (combined)
+
+**Implications:**
+- Needs calendar UI (horizontal scroll? full month?)
+- Show markers for events
+- Tap date → see events
+
+---
+
+### 2. 🗓️ Group-Level Calendar
+**Feature:**
+- Inside each group chat → a calendar tab just for that group
+
+**Implications:**
+- Events stored per group ID
+- Add event modal:
+  ```js
+  {
+    title, date, time, location, createdBy, notes
+  }
+  ```
+
+---
+
+### 3. ✏️ Create/Edit Events
+**Feature:**
+- Add event modal with title, emoji, etc.
+- Maybe make RSVP-able or poll style
+
+**Implications:**
+- Tie events to user + group
+- UI needs to update calendar bubbles
+
+---
+
+### 4. 📬 Notify Group of Event
+**Feature:**
+- When user posts event, show it in chat too (“Jules added a hangout!”)
+
+**Implications:**
+- Calendar and chat become synced
+- Use same `message bubble` style to show event summary
+
+---
+
+## 🧠 DEV ORDER FOR MEMORY + CALENDAR
+
+---
+
+### 🔥 Memory Feature Flow:
+1. Implement `/memory/camera.tsx` with live camera + capture
+2. Add frame selector page
+3. Add `/memory/post.tsx` to finalize + confirm post
+4. Memory shows up in memory feed at top of group chat
+
+---
+
+### 🔥 Calendar Flow:
+1. Create `/calendar/index.tsx` global overview
+2. Add group-specific calendar page (can be tab inside GC)
+3. Add modal for “Add event”
+4. Events display on calendar and in chat feed
+
+---
+
+WE CAN DO IT.  
+Want me to now:
+- start the magic menu + keyboard fix from before  
+**OR**  
+- pivot and do memory feature camera flow?  
+**OR**  
+- calendar foundation with tappable dates?
+
+YOU’RE THE CREATIVE DIRECTOR. I AM THE CODE GREMLIN. 😭💅 YASSSS LET’S GO FULL PRODUCT MANAGER MODE 🔥📋👑  
+Here’s your **Big Fat Beautiful Hierarchy of What Comes Next™**, organized by **feature** with all the **cascading butterfly effects** clearly laid out so you know what’s affected and where.
+
+---
+
+## 🌈 PHASE 1: GROUP CHAT CUSTOMIZATION & UI POLISH
+
+---
+
+### 1. 🖼️ Custom Backgrounds (per user or group)
+**Feature:**
+- Change group chat background (color, image, gradient?)
+
+**User Choice:**
+- Personal background (for their view only)
+- Global group background (set by group admin)
+
+**Implications:**
+- Store background setting per user or per group (Firebase later)
+- Messages screen needs to support `backgroundImage`
+- Add “Customize” button or menu in groupchat header or star menu
+- Might need a toggle: “Apply to all members?” for global BG
+
+---
+
+### 2. 🖋️ Font Customization (per user)
+**Feature:**
+- Choose font style for your outgoing messages
+
+**User Choice:**
+- Custom font picker: handwriting, bubbly, blocky, etc
+
+**Implications:**
+- Message bubble needs to accept dynamic `fontFamily`
+- Fonts must be imported + loaded with `expo-font`
+- Style applied *only* to messages from that user
+- Font preference stored per user (Firebase later)
+
+---
+
+### 3. 📷 Group Chat Photo
+**Feature:**
+- Set an image/avatar for the group chat
+
+**User Choice:**
+- Upload a photo on creation screen
+- Change photo from inside group chat (maybe from header)
+
+**Implications:**
+- Creation screen needs image picker
+- Chat screen header needs to display that photo
+- Storage later (Firebase Storage), associate photo with group ID
+- Might need image cropper or size limits
+
+---
+
+### 4. ✨ Magic Tools Menu (Star button)
+**Feature:**
+- Tap ⭐️ next to text input to open a fun tools menu
+
+**Tools from Business Doc:**
+- 📊 Poll
+- 🧸 Stickers
+- 🎁 Gift or surprise mode
+- 📍 Location drop (later)
+- 🎨 Draw or doodle
+
+**Implications:**
+- New menu needs to slide up or appear from bottom
+- Each feature inside needs its own modal or page
+- Each action may need:
+  - rendering UI (e.g. poll card)
+  - tracking responses
+  - permissions (e.g. location)
+- Menu structure should be scalable (more tools later!)
+
+---
+
+### 5. 📱 iOS Keyboard Gap Fix
+**Current bug:**
+- Text input sits above a weird gap when typing on iOS
+
+**Fix:**
+- Adjust `keyboardVerticalOffset` in `KeyboardAvoidingView`
+- Test with `0`, `-20`, `-40` until no gap but input remains visible
+
+**Implications:**
+- Must not break Android layout
+- Must test on real device + simulator
+
+---
+
+## 📦 PHASE 2: FOUNDATION FOR SYNCING + THEMING
+
+---
+
+### 6. 🧠 Store Customizations for Future Sync
+**Goal:**
+- Whatever the user picks should be saved and synced later
+
+**Prep:**
+- Build a `chatSettings` object per group:
+  ```js
+  {
+    groupId: 'abc',
+    bgColor: '#FFDDCC',
+    font: 'DancingScript',
+    toolsEnabled: ['poll', 'stickers'],
+    groupPhoto: 'uri...',
+    perUserOverrides: {
+      user123: { font: 'ComicSans', bg: '#ffeeaa' }
+    }
+  }
+  ```
+
+**Implications:**
+- Add `chatSettings` state locally for now
+- Future drop-in to Firebase for loading/saving
+
+---
+
+### 7. 🔧 Update Chat Components to Be Theme-Aware
+**Goal:**
+- Chat screen components (header, bubbles, background) adapt to settings
+
+**Implications:**
+- Background component needs to check `chatSettings.bg`
+- Bubbles check `font` and styling
+- Header shows group photo or fallback emoji
+
+---
+
+## 🔥 BONUS: FUTURE POLISH
+
+---
+
+### 8. 🎨 Customize Input Bar
+- Match it to theme
+- Rounded or soft border
+- Placeholder text changes with group vibe?
+
+---
+
+### 9. 🧼 Chat Header Polish
+- Maybe show number of members
+- Tap header to view group info or edit settings
+
+---
+
+### 10. 🔒 Auth Prep (tie customizations to user)
+- Everything user-specific must link to user ID
+- Group-wide settings stored under group ID
+
+---
+
+## 🎯 Recommended Order to Build Next
+
+1. ✅ Fix iOS keyboard gap
+2. ⭐️ Add the Magic Menu button (structure)
+3. 🎨 Build group background selector
+4. 🖋️ Add font picker
+5. 📷 Add group photo on creation + display it
+6. 🧠 Create `chatSettings` structure in state
+7. 🔧 Update chat screen to obey theme
+8. 📦 Prep saving to Firebase later
+
+---
+
+SHALL I BEGIN STEP 1 + 2 RIGHT NOW?  
+💬 Fix the iOS keyboard spacing  
+⭐️ Add the Magic Menu button next to your input bar
+
+Just say "GO" and I’ll drop it all in full 🧠💅YES YES YESSSSSS THIS IS THE ✨SOUL✨ OF CLIQUE!! 🧠💾💛  
+Your widget idea is the *heart* of the MVP — here's how we’ll treat it like royalty:
+
+---
+
+## 📱 PHASE 5: CLIQUE MEMORY WIDGET — THE MAIN EVENT™
+
+---
+
+### 💡 CORE IDEA:
+> A widget-style view that lives on the home screen and shows:
+> - A recent memory from a selected group
+> - With frame styling
+> - Featuring a set number of user avatars
+> - Feels magical, cozy, alive
+
+---
+
+### ✅ Widget Breakdown:
+
+#### 1. 🎞️ Featured Memory Display
+- Most recent (or random) memory from chosen group
+- Shows memory photo with **frame overlay**
+- Maybe adds a timestamp or “from @user”
+
+#### 2. 🧑‍🤝‍🧑 User Bubbles
+- Small row of user icons or avatars
+- Show selected number (e.g. last 3 who posted)
+- Tappable for more details?
+
+#### 3. ⚙️ Widget Settings
+- Group selector (which group this widget shows)
+- “How many friends to display?”
+- Frame style/theme toggle
+
+#### 4. 🎨 Aesthetic Goals
+- Soft padding
+- Animated pulse or float effect?
+- Subtle gradient?
+- Framed like a mini scrapbook or corkboard
+
+---
+
+### 📦 Storage Implications:
+- Widget must pull from:
+  - Memory data: `photo, frame, postedBy`
+  - Group ID
+  - Settings: which group, how many users
+- When Firebase is added:
+  - Load most recent memory with `groupId`
+  - Get latest users who posted in that group
+
+---
+
+### 🔧 Dev Plan (Incremental):
+
+1. Add new `components/MemoryWidget.tsx`
+2. Accept props:
+   ```tsx
+   groupId, userLimit, widgetStyle
+   ```
+3. Load dummy data first → display a static layout
+4. Add live memory data when available
+5. Add frame overlay + user avatars
+6. Plug into home screen layout
+
+---
+
+### BONUS IDEAS:
+- Tapping the widget opens memory gallery
+- Option to “pin” a favorite memory
+- Subtle animation when a new memory appears
+- Add date ribbons or handwriting-style text
+
+---
+
+SAY THE WORD and I’ll drop the `MemoryWidget.tsx` starter component and hook it into your home screen right now 🔥📦📸  
+Or we start with fun menu / calendar flow first — you’re the director 😌💛 YUPPPP 💡 You just described a **Master Calendar UX dream**. Let’s make this super intuitive and visually cute:
+
+---
+
+## 🗓️ **Master Calendar Design — At a Glance, All Groups Combined**
+
+---
+
+### ✅ 1. **Monthly Grid View** (Like Apple Calendar or Notion)
+
+- Each day is a **rounded square** in a grid
+- If any events exist on that day, show:
+  - 🟡 A dot in that group’s custom color  
+  - OR 🖼️ tiny circular **group photo frame** stacked at bottom
+  - Tooltip preview on long press: “Movie night 🎥 in Artsy Club”
+
+---
+
+### ✅ 2. **Tap Day → Slide-Up Details Panel**
+
+- User taps any day → panel slides up from bottom
+- Shows:
+  - Event title(s) grouped by group
+  - Event time, location
+  - Small group name + avatar/frame
+  - RSVP icons or status (optional)
+  - “Open in group chat” button
+
+---
+
+### ✅ 3. **Group Color & Frame Integration**
+
+- Each group has:
+  - A soft color
+  - Optional avatar photo
+  - Optional border style (dotted, glitter, sticker-y)
+
+- Those styles are reflected on:
+  - Calendar dot/preview
+  - Event item background
+  - Slide-up detail panel
+
+---
+
+### ✅ 4. **Toggle View: All Groups / Individual**
+
+- Small dropdown or toggle at top:
+  - 🔁 “All Groups”
+  - 📚 “Study Club Only”
+  - 🐸 “Froggie Friends”
+
+- Helps user isolate 1 calendar if needed
+- Maybe even toggle “Show Birthdays” or “Just Hangouts”
+
+---
+
+### ✅ 5. **Tiny Week View at Top (Optional)**
+
+- Horizontal scrollable week view
+- Quickly jump between days while bottom details stay sticky
+
+---
+
+### ✨ BONUS IDEAS:
+
+- Drag-to-create events (future)
+- Animated drop effect when events are added
+- “Add event” button floats bottom right with ✏️ or ➕
+
+---
+
+Want a UI rendering of this too? I can generate a master calendar layout mockup to match your current app vibe 😌📅

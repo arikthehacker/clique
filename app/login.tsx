@@ -29,12 +29,14 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: 'bold',
     color: '#333',
+    fontFamily: 'Outfit-Regular',
     marginBottom: 24,
   },
   input: {
     backgroundColor: '#fff',
     borderRadius: 6,
     marginBottom: 12,
+    fontFamily: 'Outfit-Regular',
     padding: 12,
   },
 });

@@ -19,6 +19,9 @@
  * - Questions
  */
 
+// FILE: app/home/SettingsSidebar.tsx
+// PURPOSE: Full sidebar overlay for in-app settings with built-in section transitions
+
 import React, { useRef, useEffect, useState } from 'react';
 import {
   View,
@@ -30,12 +33,13 @@ import {
   TextInput,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
+import { Feather, Ionicons } from '@expo/vector-icons';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
 export default function SettingsSidebar({ onClose }) {
   const slideAnim = useRef(new Animated.Value(-SCREEN_WIDTH)).current;
-  const [activeScreen, setActiveScreen] = useState(null); // which panel is open
+  const [activeScreen, setActiveScreen] = useState(null);
   const [friendName, setFriendName] = useState('');
 
   useEffect(() => {
@@ -47,12 +51,12 @@ export default function SettingsSidebar({ onClose }) {
   }, []);
 
   const menuItems = [
-    { label: 'Add Friends', icon: '➕', key: 'add' },
-    { label: 'Memories', icon: '🧠', key: 'memories' },
-    { label: 'Blocked', icon: '🚫', key: 'blocked' },
-    { label: 'Notifications', icon: '🔔', key: 'notifications' },
-    { label: 'Reports', icon: '❗', key: 'reports' },
-    { label: 'Questions', icon: '❓', key: 'questions' },
+    { label: 'Add Friends', icon: 'user-plus', key: 'add' },
+    { label: 'Memories', icon: 'image', key: 'memories' },
+    { label: 'Blocked', icon: 'slash', key: 'blocked' },
+    { label: 'Notifications', icon: 'bell', key: 'notifications' },
+    { label: 'Reports', icon: 'alert-triangle', key: 'reports' },
+    { label: 'Questions', icon: 'help-circle', key: 'questions' },
   ];
 
   const renderScreen = () => {
@@ -69,9 +73,7 @@ export default function SettingsSidebar({ onClose }) {
               onChangeText={setFriendName}
             />
             <Pressable
-              onPress={() => {
-                Haptics.selectionAsync();
-              }}
+              onPress={() => Haptics.selectionAsync()}
               style={styles.button}
             >
               <Text style={styles.buttonText}>Send Request</Text>
@@ -79,19 +81,19 @@ export default function SettingsSidebar({ onClose }) {
           </>
         );
       case 'memories':
-        return <Text style={styles.placeholder}>✨ Your saved memories will appear here ✨</Text>;
+        return <Text style={styles.placeholder}>Your saved memories will appear here.</Text>;
       case 'blocked':
-        return <Text style={styles.placeholder}>🚫 You haven’t blocked anyone... yet 😅</Text>;
+        return <Text style={styles.placeholder}>You haven’t blocked anyone.</Text>;
       case 'notifications':
-        return <Text style={styles.placeholder}>🔔 No notifications right now.</Text>;
+        return <Text style={styles.placeholder}>No notifications right now.</Text>;
       case 'reports':
-        return <Text style={styles.placeholder}>📄 You haven’t filed any reports.</Text>;
+        return <Text style={styles.placeholder}>You haven’t filed any reports.</Text>;
       case 'questions':
-        return <Text style={styles.placeholder}>❓ Questions you’ve submitted will show here.</Text>;
+        return <Text style={styles.placeholder}>Questions you’ve submitted will show here.</Text>;
       default:
         return (
           <>
-            <Text style={styles.header}>Settings ⚙️</Text>
+            <Text style={styles.header}>Settings</Text>
             {menuItems.map((item, i) => (
               <Pressable
                 key={i}
@@ -101,12 +103,12 @@ export default function SettingsSidebar({ onClose }) {
                   setActiveScreen(item.key);
                 }}
               >
-                <Text style={styles.icon}>{item.icon}</Text>
+                <Feather name={item.icon} size={20} color="#333" style={styles.icon} />
                 <Text style={styles.label}>{item.label}</Text>
               </Pressable>
             ))}
             <View style={styles.footer}>
-              <Text style={styles.info}>🔮 app information</Text>
+              <Text style={styles.info}>App Info</Text>
               <Text style={styles.about}>About Clique</Text>
             </View>
           </>
@@ -116,9 +118,8 @@ export default function SettingsSidebar({ onClose }) {
 
   return (
     <View style={styles.overlay}>
-      <Animated.View style={[styles.sidebar, { transform: [{ translateX: slideAnim }] }]}>
+      <Animated.View style={[styles.sidebar, { transform: [{ translateX: slideAnim }] }]}>        
         {renderScreen()}
-
         {activeScreen && (
           <Pressable
             onPress={() => {
@@ -131,7 +132,6 @@ export default function SettingsSidebar({ onClose }) {
           </Pressable>
         )}
       </Animated.View>
-
       <Pressable style={styles.backdrop} onPress={onClose} />
     </View>
   );
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
   },
   sidebar: {
     width: SCREEN_WIDTH * 0.7,
-    backgroundColor: '#F1E3C0',
+    backgroundColor: '#f6e49b',
     paddingTop: 60,
     paddingHorizontal: 20,
     shadowColor: '#000',
@@ -162,23 +162,26 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.3)',
   },
   header: {
-    fontSize: 26,
-    fontWeight: 'bold',
+    fontSize: 46,
+    color: "#725206",
+    fontFamily: 'Gaegu-Regular',
     marginBottom: 20,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 16,
-    borderBottomColor: '#ccc',
+    borderBottomColor: '#e1c45a',
     borderBottomWidth: 0.5,
   },
   icon: {
-    fontSize: 18,
-    marginRight: 12,
+    marginRight: 15,
+    color: "#725206",
   },
   label: {
     fontSize: 18,
+    fontFamily: 'Gaegu-Regular',
+    color: "#5f480d",
   },
   footer: {
     marginTop: 30,
@@ -186,16 +189,18 @@ const styles = StyleSheet.create({
   info: {
     color: '#b7931d',
     marginBottom: 6,
+    fontFamily: 'Gaegu-Regular',
   },
   about: {
     fontSize: 14,
-    color: '#444',
+    color: '#725206',
   },
   input: {
     backgroundColor: '#fff',
     padding: 12,
     borderRadius: 10,
     marginBottom: 20,
+    fontFamily: 'Gaegu-Regular',
   },
   button: {
     backgroundColor: '#b7931d',
@@ -220,6 +225,6 @@ const styles = StyleSheet.create({
     color: '#444',
     fontStyle: 'italic',
     paddingTop: 10,
+    fontFamily: 'Gaegu-Regular',
   },
 });
-

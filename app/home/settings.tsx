@@ -20,6 +20,10 @@
  *  - Replace emoji icons with real SVGs/icons later
  */
 
+
+// FILE: app/settings.tsx
+// PURPOSE: This is the slide-out settings panel, updated with Feather icons and custom fonts
+
 import React from 'react';
 import {
   View,
@@ -29,27 +33,28 @@ import {
   ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Feather } from '@expo/vector-icons';
 
 export default function Settings() {
   const router = useRouter();
 
   const menuItems = [
-    { label: 'User', icon: '👤' },
-    { label: 'Memories', icon: '🧠' },
-    { label: 'Blocked', icon: '🚫' },
-    { label: 'Notifications', icon: '🔔' },
-    { label: 'Reports', icon: '❗' },
-    { label: 'Questions', icon: '❓' },
+    { label: 'User', icon: 'user' },
+    { label: 'Memories', icon: 'image' },
+    { label: 'Blocked', icon: 'slash' },
+    { label: 'Notifications', icon: 'bell' },
+    { label: 'Reports', icon: 'alert-triangle' },
+    { label: 'Questions', icon: 'help-circle' },
   ];
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Settings ⚙️</Text>
+      <Text style={styles.header}>Settings</Text>
 
       <ScrollView style={styles.menu}>
         {menuItems.map((item, i) => (
           <Pressable key={i} style={styles.row}>
-            <Text style={styles.icon}>{item.icon}</Text>
+            <Feather name={item.icon} size={20} color="#333" style={styles.icon} />
             <Text style={styles.label}>{item.label}</Text>
           </Pressable>
         ))}
@@ -57,7 +62,6 @@ export default function Settings() {
 
       <View style={styles.footer}>
         <Pressable>
-          <Text style={styles.info}>🔮 app information</Text>
         </Pressable>
         <Text style={styles.about}>About Clique</Text>
       </View>
@@ -74,8 +78,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   header: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: 34,
+    fontFamily: 'Outfit-Regular',
     marginBottom: 24,
   },
   menu: {
@@ -89,11 +93,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0.6,
   },
   icon: {
-    fontSize: 20,
     marginRight: 16,
   },
   label: {
-    fontSize: 18,
+    fontSize: 28,
+    fontFamily: 'Gaegu-Regular',
   },
   footer: {
     marginBottom: 30,
@@ -102,10 +106,12 @@ const styles = StyleSheet.create({
   info: {
     color: '#b7931d',
     marginBottom: 6,
+    fontFamily: 'Gaegu-Regular',
   },
   about: {
-    fontSize: 14,
+    fontSize: 24,
     color: '#444',
+    fontFamily: 'Outfit-Light',
+    marginBottom: 25,
   },
 });
-

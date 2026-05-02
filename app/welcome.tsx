@@ -39,7 +39,8 @@ export default function Welcome() {
 	  style={styles.avatar}
         />
       </Animated.View>
-      <Text style={styles.text}>Welcome, @{username}!</Text>
+      <Text style={styles.text}>Welcome,</Text>
+      <Text style={styles.username}>@{username}!</Text>
     </View>
   );
 }
@@ -59,8 +60,12 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 28,
-    fontWeight: 'bold',
+    fontFamily: 'Figtree-SemiBold',
     color: '#333',
+  },
+  username: {
+    fontSize: 46,
+    fontFamily: 'Gaegu-Regular',
   },
 });
 

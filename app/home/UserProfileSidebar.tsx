@@ -15,6 +15,9 @@
  * - Handwriting-style font for username tag
  */
 
+
+// FILE: app/home/UserProfileSidebar.tsx
+
 import React, { useEffect, useRef } from 'react';
 import {
   Animated,
@@ -25,8 +28,18 @@ import {
   Pressable,
   Image,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
+const defaultAvatar = require('../../assets/images/default-avatar.png');
+const recentMemoryImg   = require('../../assets/images/recent-memory.png');
+const groupChatPhotoImg = require('../../assets/images/groupchat-photo.png');
+const yingPfp           = require('../../assets/images/ying-pfp.png');
+const jenniferPfp       = require('../../assets/images/jennifer-pfp.png');
+const jennPfp           = require('../../assets/images/jenn-pfp.png');
+const arikPfp           = require('../../assets/images/arik-pfp.png');
+const groupPhoto1       = require('../../assets/images/group-photo1.png');
+
 
 export default function UserProfileSidebar({ onClose }) {
   const slideAnim = useRef(new Animated.Value(SCREEN_WIDTH)).current;
@@ -41,34 +54,22 @@ export default function UserProfileSidebar({ onClose }) {
 
   return (
     <View style={styles.overlay}>
-      {/* Sidebar content */}
-      <Animated.View
-        style={[styles.sidebar, { transform: [{ translateX: slideAnim }] }]}
-      >
+      <Animated.View style={[styles.sidebar, { transform: [{ translateX: slideAnim }] }]}>
         <Text style={styles.header}>Your Profile</Text>
 
         <View style={styles.avatarWrapper}>
           <View style={styles.dottedCircle}>
-            <Image
-              source={require('../../assets/images/default-avatar.png')}
-              style={styles.avatar}
-            />
+            <Image source={arikPfp} style={styles.avatar} />
           </View>
         </View>
 
-        <Text style={styles.username}>Arik</Text>
-        <Text style={styles.handle}>@username</Text>
-
-        <View style={styles.framePreview}>
-          <Text style={styles.frameLabel}>🎨 customizable frame preview</Text>
-        </View>
+        <Text style={styles.handle}>@arik</Text>
 
         <Pressable onPress={onClose} style={styles.backBtn}>
           <Text style={styles.backText}>← Close</Text>
         </Pressable>
       </Animated.View>
 
-      {/* Dim background */}
       <Pressable style={styles.backdrop} onPress={onClose} />
     </View>
   );
@@ -86,7 +87,7 @@ const styles = StyleSheet.create({
   },
   sidebar: {
     width: SCREEN_WIDTH * 0.7,
-    backgroundColor: '#F1E3C0',
+    backgroundColor: '#f6e49b',
     paddingTop: 60,
     paddingHorizontal: 20,
     shadowColor: '#000',
@@ -95,13 +96,16 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   header: {
-    fontSize: 24,
+    fontSize: 40,
+    color: "#5f480d",
     fontWeight: 'bold',
+    textAlign: 'center',
     marginBottom: 24,
+    fontFamily: 'Gaegu-Regular',
   },
   avatarWrapper: {
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 8,
   },
   dottedCircle: {
     width: 100,
@@ -119,42 +123,24 @@ const styles = StyleSheet.create({
     height: 90,
     borderRadius: 45,
   },
-  username: {
-    fontSize: 20,
-    textAlign: 'center',
-    marginTop: 4,
-    fontWeight: '600',
-  },
   handle: {
-    fontFamily: 'Cochin', // or swap with handwritten Google Font later
-    fontSize: 16,
+    fontFamily: 'Gaegu-Regular',
+    fontSize: 30,
+    color: "#5f480d",
     textAlign: 'center',
     marginBottom: 24,
   },
-  framePreview: {
-    backgroundColor: '#fff',
-    height: 120,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: '#ccc',
-  },
-  frameLabel: {
-    color: '#777',
-    fontStyle: 'italic',
-  },
   backBtn: {
-    marginTop: 20,
+    marginTop: 500,
+    marginLeft: 40
   },
   backText: {
-    color: '#555',
-    fontSize: 16,
+    color: "#5f480d",
+    fontFamily: 'Gaegu-Light',
+    fontSize: 30,
   },
   backdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.3)',
   },
 });
-

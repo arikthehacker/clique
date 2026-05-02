@@ -30,6 +30,7 @@
  * - Add animated transitions for input appearance
  */
 
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
   View,
@@ -48,12 +49,11 @@ export default function Questions() {
   const [q1, setQ1] = useState('');
   const [q2, setQ2] = useState('');
   const [q3, setQ3] = useState('');
-
+  const router = useRouter();
   const allFilled = q1 && q2 && q3;
-
   const handleContinue = () => {
     Haptics.selectionAsync();
-    console.log('Continue pressed!');
+    router.push('/home');
     // route somewhere later
   };
 
@@ -118,24 +118,27 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   title: {
-    fontSize: 22,
+    fontSize: 26,
     marginBottom: 24,
     textAlign: 'center',
-    fontWeight: 'bold',
-    color: '#333',
+    fontFamily: 'Outfit-Regular',
+    color: '#856d0f',
   },
   input: {
     backgroundColor: '#fff',
     borderRadius: 10,
     padding: 12,
     marginBottom: 16,
+    fontFamily: 'Gaegu-Light',
+    fontSize: 26,
   },
   buttons: {
     alignItems: 'center',
     marginTop: 20,
+    fontFamily: 'Gaegu-Light',
   },
   continueBtn: {
-    backgroundColor: '#b7931d',
+    backgroundColor: '#8e7107',
     paddingVertical: 10,
     paddingHorizontal: 30,
     borderRadius: 10,
@@ -143,11 +146,14 @@ const styles = StyleSheet.create({
   },
   continueText: {
     color: '#fff',
-    fontWeight: 'bold',
+    fontSize: 22,
+    fontFamily: 'Gaegu-Regular',
   },
   skipText: {
-    color: '#333',
+    color: '#ab912f',
     textDecorationLine: 'underline',
+    fontFamily: 'Gaegu-Regular',
+    fontSize: 20,
   },
 });
 

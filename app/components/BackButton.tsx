@@ -22,8 +22,9 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   text: {
-    color: '#333',
-    fontSize: 16,
+    color: '#615310',
+    fontSize: 20,
+    fontFamily: "Gaegu-Light",
   },
 });
 

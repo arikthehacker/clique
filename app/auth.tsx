@@ -41,6 +41,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import BackButton from './components/BackButton';
+import { MaterialIcons, FontAwesome, Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 
 export default function AuthScreen() {
@@ -92,8 +93,15 @@ export default function AuthScreen() {
       </View>
 
       <View style={styles.inputWrapper}>
-        <Text style={styles.icon}>{mode === 'signup' ? '📧' : '👤'}</Text>
-        <TextInput
+        
+  
+{mode === 'signup' ? (
+  <MaterialIcons name="mail" size={18} color="#b7931d" style={styles.icon} />
+) : (
+  <Feather name="user" size={18} color="#b7931d" style={styles.icon} />
+)}
+
+      <TextInput
           placeholder={mode === 'signup' ? 'Email' : 'Username'}
           placeholderTextColor="#999"
           value={emailOrUser}
@@ -103,8 +111,10 @@ export default function AuthScreen() {
       </View>
 
       <View style={styles.inputWrapper}>
-        <Text style={styles.icon}>🔒</Text>
-        <TextInput
+           
+      <Feather name="lock" size={18} color="#b7931d" style={styles.icon} />
+
+      <TextInput
           placeholder="Password"
           placeholderTextColor="#999"
           secureTextEntry
@@ -116,8 +126,10 @@ export default function AuthScreen() {
 
       {mode === 'signup' && (
         <View style={styles.inputWrapper}>
-          <Text style={styles.icon}>✅</Text>
-          <TextInput
+          
+<FontAwesome name="check-square" size={18} color="#b7931d" style={styles.icon} />
+
+        <TextInput
             placeholder="Confirm Password"
             placeholderTextColor="#999"
             secureTextEntry
@@ -130,7 +142,8 @@ export default function AuthScreen() {
 
       <Pressable style={styles.submit} onPress={handleSubmit}>
         <Text style={styles.submitText}>
-          {mode === 'signup' ? 'Sign Up' : 'Log In'}
+          {mode === 'signup' ? "Let's Get Started!" : 'Log In'}
+          
         </Text>
       </Pressable>
     </View>
@@ -148,12 +161,14 @@ const styles = StyleSheet.create({
     fontSize: 50,
     fontWeight: 'bold',
     textAlign: 'center',
+    fontFamily: 'Gaegu-Regular',
     color: '#8f741d',
   },
   subtitle: {
     fontStyle: 'italic',
     fontSize: 20,
     textAlign: 'center',
+    fontFamily: 'Figtree-Light',
     color: '#a98100',
     marginBottom: 24,
   },
@@ -167,7 +182,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginHorizontal: 8,
     borderRadius: 12,
-    backgroundColor: '#eee',
+    //backgroundColor: '#eee',
   },
   activeToggle: {
     backgroundColor: 'rgba(0,0,0,0.1)',
@@ -175,9 +190,11 @@ const styles = StyleSheet.create({
   toggleText: {
     color: '#8f741d',
     fontWeight: '500',
+    fontFamily: 'Gaegu-Light',  
   },
   activeToggleText: {
-    fontWeight: 'bold',
+    fontFamily: 'Gaegu-Bold',
+    fontSize: 20,
   },
   inputWrapper: {
     flexDirection: 'row',
@@ -194,11 +211,12 @@ const styles = StyleSheet.create({
   },
   icon: {
     fontSize: 16,
-    marginRight: 8,
+    marginRight: 10,
   },
   input: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 22,
+    fontFamily: 'Gaegu-Light',
     color: '#333',
   },
  submit: {
@@ -213,6 +231,7 @@ const styles = StyleSheet.create({
   submitText: {
     color: '#fff',
     fontWeight: '600',
+    fontFamily: 'Figtree-Regular',
     fontSize: 16,
   },
 });
