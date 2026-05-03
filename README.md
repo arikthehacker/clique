@@ -104,6 +104,20 @@ I developed Clique through an iterative design process instead of treating the f
 
 I would build a screen or flow, then have people test it and watch how they naturally used it. I paid attention to what they tapped first, where their fingers moved on the screen, what felt obvious, and what seemed confusing. That feedback shaped several UI changes, especially around onboarding, group chat creation, memory previews, and navigation.
 
+### The First Iteration through Figma
+
+I learned to use Figma in the beginning stages of this project to create my first Clique mockups before I moved into React Native.
+
+I used Figma to test the product idea visually before committing everything to code. Once I had screens people could react to, I watched how they moved through the flow: what they noticed first, where their fingers naturally went, what seemed clickable, and what needed more explanation. That feedback helped me adjust the onboarding flow, group chat layout, memory previews, and navigation.
+
+The app changed a lot from the first Figma version to the working Expo MVP. The early design was useful because it let me test the feeling and structure of the app before turning it into code.
+
+### First Figma Design
+
+| Welcome v1 | Login/Signup v1 | Login/Signup v2 | Home v1 | Home v2 | Settings Sidebard v1 |
+|---|---|---|---|---|---|
+| <img width="682" height="1505" alt="image" src="https://github.com/user-attachments/assets/47f89e60-69e2-4c92-ab74-53ecbefd971a" /> | <img width="682" height="1505" alt="image" src="https://github.com/user-attachments/assets/343b902d-f4cf-4af3-9208-f0cb76d7c42d" /> | <img width="682" height="1505" alt="image" src="https://github.com/user-attachments/assets/a5c224b5-163c-4e92-a35f-182820c61d91" /> | <img width="682" height="1505" alt="image" src="https://github.com/user-attachments/assets/a25613e6-3ec4-48af-b612-a447335ef283" /> | <img width="682" height="1505" alt="image" src="https://github.com/user-attachments/assets/4b4f8956-350a-4a62-8735-70d83db5cf1b" /> | <img width="682" height="1505" alt="image" src="https://github.com/user-attachments/assets/caf0290e-9c2b-4cbf-a833-d178f8e0655a" /> |
+
 Some of the questions I used while testing were:
 
 - Where does the user naturally look first?
@@ -118,8 +132,6 @@ This process helped me move from rough screen ideas toward a more usable MVP. It
 ## Screenshots & Demo Video
 
 ### Demo Screen Recording
-
-
 
 
 ### Onboarding Flow
