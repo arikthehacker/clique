@@ -1,8 +1,8 @@
 # Clique
 
-Clique is a React Native mobile app prototype for private friend groups. It combines group chats, shared memories, lightweight planning, and profile customization into one social space.
+Clique is what happens when a group chat, a shared camera roll, and a calendar finally live in the same place, built for private friend circles.
 
-I built the working MVP in Expo and TypeScript with a business-student partner. I handled the app development and technical implementation, while my partner helped shape the product concept, research direction, business model, and pitch. The project was presented at a venture competition and placed 2nd.
+I built the working MVP in Expo and TypeScript with a business-student partner over six months of collaboration. I handled the app development and technical implementation, while my partner helped shape the product concept, research direction, business model, and pitch. The project was presented at a venture competition and placed 2nd.
 
 ## Project Status
 
@@ -31,6 +31,10 @@ Clique was my attempt to combine those ideas into one private mobile space: a pl
 The main product question was:
 
 > What would a social app look like if it was built around private friend groups, memories, and coordination instead of public posting or endless scrolling?
+
+## Research & Collaboration
+
+I built Clique alongside a business partner over six months of biweekly collaboration. She conducted international user research, interviewing families and young adults in Chile and contacts in China, which directly shaped what I prioritized building. The insight from Chile was that tight-knit families who already live near each other need planning tools more than photo sharing. That's why the shared calendar and coordination features became central instead of secondary. Working with a non-technical partner taught me how to translate research findings into technical decisions and build toward a real user need instead of assumptions.
 
 ## Core Features
 
@@ -104,7 +108,7 @@ I developed Clique through an iterative design process instead of treating the f
 
 I would build a screen or flow, then have people test it and watch how they naturally used it. I paid attention to what they tapped first, where their fingers moved on the screen, what felt obvious, and what seemed confusing. That feedback shaped several UI changes, especially around onboarding, group chat creation, memory previews, and navigation.
 
-### The First Iteration through Figma
+### First Figma Iteration
 
 I learned to use Figma in the beginning stages of this project to create my first Clique mockups before I moved into React Native.
 
@@ -112,9 +116,7 @@ I used Figma to test the product idea visually before committing everything to c
 
 The app changed a lot from the first Figma version to the working Expo MVP. The early design was useful because it let me test the feeling and structure of the app before turning it into code.
 
-### First Figma Design
-
-| Welcome v1 | Login/Signup v1 | Login/Signup v2 | Home v1 | Home v2 | Settings Sidebard v1 |
+| Welcome v1 | Login/Signup v1 | Login/Signup v2 | Home v1 | Home v2 | Settings Sidebar v1 |
 |---|---|---|---|---|---|
 | <img width="682" height="1505" alt="image" src="https://github.com/user-attachments/assets/47f89e60-69e2-4c92-ab74-53ecbefd971a" /> | <img width="682" height="1505" alt="image" src="https://github.com/user-attachments/assets/343b902d-f4cf-4af3-9208-f0cb76d7c42d" /> | <img width="682" height="1505" alt="image" src="https://github.com/user-attachments/assets/a5c224b5-163c-4e92-a35f-182820c61d91" /> | <img width="682" height="1505" alt="image" src="https://github.com/user-attachments/assets/a25613e6-3ec4-48af-b612-a447335ef283" /> | <img width="682" height="1505" alt="image" src="https://github.com/user-attachments/assets/4b4f8956-350a-4a62-8735-70d83db5cf1b" /> | <img width="682" height="1505" alt="image" src="https://github.com/user-attachments/assets/caf0290e-9c2b-4cbf-a833-d178f8e0655a" /> |
 
@@ -131,8 +133,13 @@ This process helped me move from rough screen ideas toward a more usable MVP. It
 
 ## Screenshots & Demo Video
 
-### Demo Screen Recording
-
+<p align="center">
+  <a href="clique-demo-example.mp4">
+    <img src="clique-demo-example-gif.gif" alt="Clique app demo preview" width="280" />
+  </a>
+</p>
+<p align="center">
+</p>
 
 ### Onboarding Flow
 
@@ -156,12 +163,16 @@ This process helped me move from rough screen ideas toward a more usable MVP. It
 
 ## Pitch and Feedback
 
-Clique was presented at a venture competition and placed 2nd. The pitch led to useful discussion with judges, especially around privacy, digital wellness, and how Clique compared to tools focused on reducing phone use.
+Clique was presented at a venture competition and placed 2nd out of the full field. The pitch covered a full business model, freemium revenue tiers, a five-year financial projection, and a $100K seed ask. The pitch led to useful discussion with judges, especially around privacy, digital wellness, and how Clique compared to tools focused on reducing phone use.
 
 Two major questions came up:
 
 1. How would privacy work if the app stores personal friend-group memories, messages, and calendars?
 2. How does Clique avoid becoming another app that keeps people scrolling?
+
+Those questions helped clarify the product direction. Clique was not meant to maximize screen time through public feeds. The goal was to help friend groups coordinate, preserve memories, and stay connected in a more intentional way.
+
+That feedback reinforced the importance of private groups, clear permissions, calendar control, and memory-based interaction instead of endless content consumption.
 
 ## What I Learned
 
@@ -215,3 +226,20 @@ src/
     userService.ts
     groupService.ts
     messageService.ts
+
+```
+
+## Running Locally
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Start the Expo development server:
+```bash
+npx expo start
+```
+
+Open the project with Expo Go or an iOS simulator.
