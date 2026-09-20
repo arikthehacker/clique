@@ -1,39 +1,26 @@
 /**
  * ==============================
  * FILE: app/home/GroupChatScreen.tsx
- * Last Updated: 2026-05-01
+ * Last Updated: 2026-09-18
  * ==============================
  *
  * PURPOSE:
- * This screen is the main home view for Clique's group chat experience.
- * It shows the app header, a recent memory preview, and the user's current
+ * The Group tab. App header, a recent memory preview, and the user's
  * group chats.
  *
  * Includes:
- * - Settings button callback
- * - Profile button callback
- * - Recent memory preview card
- * - Group chat list
- * - Empty-state message when no groups exist yet
- * - Plus button route to group chat creation
- * - Route into an individual group chat room
- * - Temporary route-param handling for newly created groups
+ * - Settings and profile buttons
+ * - Updates card: newest memory, next event, steps and streak
+ * - Group chat list with the last message under each name
+ * - Loading, error, and empty states
+ * - Plus button to create a group
  *
  * Notes:
- * - This screen currently stores group chats in local component state.
- * - New groups are received through route params from app/groupchat/create.tsx.
- * - Later, this should load the user's groups from Firestore instead.
- * - The recent memory card is currently static demo content.
- * - onOpenSettings and onOpenProfile are passed in from the home layout so the
- *   sidebar overlays can open without routing away from the home screen.
+ * - Steps need a pedometer; phones without one show a short note instead.
  */
 
-import React, {
-  useEffect,
-  useState,
-} from 'react';
-
 import {
+  ActivityIndicator,
   Image,
   ScrollView,
   StyleSheet,
@@ -43,20 +30,22 @@ import {
 } from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
+import dayjs from 'dayjs';
+import * as Haptics from 'expo-haptics';
+import { useRouter } from 'expo-router';
 
+import { useAuth } from '../../src/context/AuthContext';
+import { useCalendar } from '../../src/context/CalendarContext';
+import { useGroups } from '../../src/context/GroupContext';
+import { useMemory } from '../../src/context/MemoryContext';
+import { useSteps } from '../../src/context/StepsContext';
 import {
-  useLocalSearchParams,
-  useRouter,
-} from 'expo-router';
+  DATE_FORMAT,
+  formatTime12,
+} from '../../src/lib/calendar';
+import { scaled } from '../../src/lib/theme';
 
-const defaultAvatar = require('../../assets/images/default-avatar.png');
 const defaultMemory = require('../../assets/images/default-memory.png');
-
-type GroupChat = {
-  id: string;
-  name: string;
-  image: string | null;
-};
 
 type GroupChatScreenProps = {
   onOpenSettings: () => void;
@@ -68,30 +57,98 @@ export default function GroupChatScreen({
   onOpenProfile,
 }: GroupChatScreenProps) {
   const router = useRouter();
-  const params = useLocalSearchParams();
 
-  const [
-    groupChats,
-    setGroupChats,
-  ] = useState<GroupChat[]>([]);
+  const {
+    groups,
+    loading,
+    error,
+    messagesFor,
+  } = useGroups();
 
-  useEffect(() => {
-    // grabs a newly created group from the create screen
-    if (params?.newGroup) {
-      const parsed = JSON.parse(params.newGroup as string);
+  const { memories } = useMemory();
+  const { events } = useCalendar();
+  const { user } = useAuth();
 
-      setGroupChats((prevGroups) => [
-        ...prevGroups,
-        parsed,
-      ]);
+  const {
+    steps,
+    available,
+    refresh,
+  } = useSteps();
+
+  const latestMemory = memories[0] ?? null;
+  const simple = user?.simpleMode ?? false;
+
+  // the soonest event from today on, any calendar
+  const todayKey = dayjs().format(DATE_FORMAT);
+  const nextEvent = events.find((event) => event.date >= todayKey) ?? null;
+
+  const nextEventLine = nextEvent
+    ? [
+      dayjs(nextEvent.date).format('MMM D'),
+      formatTime12(nextEvent.time),
+      nextEvent.title,
+    ].filter(Boolean).join(' ')
+    : 'nothing coming up';
+
+  const groupLabel = (groupId: string | null) =>
+    groupId ? (groups.find((group) => group.id === groupId)?.name ?? 'a group') : 'just me';
+
+  // what the list shows under each group name
+  const lastLine = (groupId: string) => {
+    const last = messagesFor(groupId).slice(-1)[0];
+
+    if (!last) {
+      return 'no messages yet';
     }
-  }, [params?.newGroup]);
+
+    if (last.kind === 'photo') {
+      return `${last.senderName} shared a photo`;
+    }
+
+    if (last.kind === 'poll') {
+      return `${last.senderName} started a poll`;
+    }
+
+    return `${last.senderName}: ${last.text}`;
+  };
+
+  const openSettings = () => {
+    Haptics.selectionAsync();
+    onOpenSettings();
+  };
+
+  const openProfile = () => {
+    Haptics.selectionAsync();
+    onOpenProfile();
+  };
+
+  // taps the steps line to recount
+  const refreshSteps = () => {
+    Haptics.selectionAsync();
+    refresh();
+  };
+
+  const openCreate = () => {
+    Haptics.selectionAsync();
+    router.push('/groupchat/create');
+  };
+
+  const openGroup = (groupId: string) => {
+    Haptics.selectionAsync();
+
+    router.push({
+      pathname: '/groupchat/[id]',
+      params: {
+        id: groupId,
+      },
+    });
+  };
 
   return (
     <View style={styles.container}>
       {/* top home header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={onOpenSettings}>
+        <TouchableOpacity onPress={openSettings}>
           <Ionicons
             name="settings-sharp"
             size={32}
@@ -103,7 +160,7 @@ export default function GroupChatScreen({
           Clique
         </Text>
 
-        <TouchableOpacity onPress={onOpenProfile}>
+        <TouchableOpacity onPress={openProfile}>
           <Ionicons
             name="person-circle-outline"
             size={36}
@@ -112,16 +169,80 @@ export default function GroupChatScreen({
         </TouchableOpacity>
       </View>
 
-      {/* recent memory preview, static for now but visually important */}
+      {/* updates card */}
       <View style={styles.memoryBox}>
-        <Image
-          source={defaultMemory}
-          style={styles.memoryImage}
-        />
+        <View style={styles.updatesRow}>
+          <Image
+            source={latestMemory ? { uri: latestMemory.uri } : defaultMemory}
+            style={styles.memoryImage}
+          />
 
-        <Text style={styles.memoryText}>
-          @arik    5m ago
-        </Text>
+          <View style={styles.updatesText}>
+            <View style={styles.updateRow}>
+              <Ionicons
+                name="camera-outline"
+                size={scaled(16, simple)}
+                color="#8f741d"
+              />
+
+              <Text
+                style={[
+                  styles.updateLine,
+                  { fontSize: scaled(14, simple) },
+                ]}
+                numberOfLines={2}
+              >
+                {latestMemory ? `${latestMemory.caption || 'a new memory'} · ${groupLabel(latestMemory.groupId)}` : 'no memories yet'}
+              </Text>
+            </View>
+
+            <View style={styles.updateRow}>
+              <Ionicons
+                name="calendar-outline"
+                size={scaled(16, simple)}
+                color="#8f741d"
+              />
+
+              <Text
+                style={[
+                  styles.updateLine,
+                  { fontSize: scaled(14, simple) },
+                ]}
+                numberOfLines={2}
+              >
+                {nextEventLine}
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              style={styles.updateRow}
+              onPress={refreshSteps}
+            >
+              <Ionicons
+                name="footsteps-outline"
+                size={scaled(16, simple)}
+                color="#8f741d"
+              />
+
+              <Text
+                style={[
+                  styles.updateLine,
+                  { fontSize: scaled(14, simple) },
+                ]}
+              >
+                {available === false ? 'steps not available on this phone' : `${steps.stepsToday.toLocaleString()} steps · streak ${steps.streak}`}
+              </Text>
+
+              {available !== false && steps.streak >= 3 && (
+                <Ionicons
+                  name="flame"
+                  size={scaled(14, simple)}
+                  color="#d9822b"
+                />
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
 
       {/* group chat section header */}
@@ -130,8 +251,7 @@ export default function GroupChatScreen({
           Group Chats
         </Text>
 
-        {/* opens the group creation flow */}
-        <TouchableOpacity onPress={() => router.push('/groupchat/create')}>
+        <TouchableOpacity onPress={openCreate}>
           <Ionicons
             name="add"
             size={24}
@@ -140,41 +260,67 @@ export default function GroupChatScreen({
         </TouchableOpacity>
       </View>
 
-      {/* empty state keeps the screen from looking broken before groups exist */}
-      {groupChats.length === 0 ? (
+      {loading && (
+        <ActivityIndicator
+          color="#b7931d"
+          style={styles.spinner}
+        />
+      )}
+
+      {error && (
+        <Text style={styles.error}>
+          could not load your groups: {error}
+        </Text>
+      )}
+
+      {/* empty state */}
+      {!loading && !error && groups.length === 0 && (
         <Text style={styles.empty}>
           no group chats yet!
         </Text>
-      ) : (
+      )}
+
+      {groups.length > 0 && (
         <ScrollView style={styles.chatList}>
-          {groupChats.map((chat) => (
+          {groups.map((group) => (
             <TouchableOpacity
-              key={chat.id}
+              key={group.id}
               style={styles.chatCard}
-              onPress={() =>
-                router.push({
-                  pathname: `/groupchat/${chat.id}`,
-                  params: {
-                    name: chat.name,
-                  },
-                })
-              }
+              onPress={() => openGroup(group.id)}
             >
-              {chat.image ? (
+              {group.imageUri ? (
                 <Image
-                  source={{ uri: chat.image }}
+                  source={{ uri: group.imageUri }}
                   style={styles.chatAvatar}
                 />
               ) : (
-                <View style={styles.chatAvatarPlaceholder} />
+                <View style={styles.chatAvatarPlaceholder}>
+                  <Text style={styles.chatAvatarLetter}>
+                    {group.name.charAt(0).toUpperCase()}
+                  </Text>
+                </View>
               )}
 
-              <Text style={styles.chatName}>
-                {chat.name}
-              </Text>
+              <View style={styles.chatText}>
+                <Text
+                  style={[
+                    styles.chatName,
+                    { fontSize: scaled(22, simple) },
+                  ]}
+                >
+                  {group.name}
+                </Text>
+
+                <Text
+                  style={styles.chatPreview}
+                  numberOfLines={1}
+                >
+                  {lastLine(group.id)}
+                </Text>
+              </View>
 
               <Ionicons
-                name="ellipsis-vertical"
+                name="chevron-forward"
                 size={18}
                 color="#725206"
               />
@@ -190,7 +336,6 @@ export default function GroupChatScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f6e49b',
     paddingHorizontal: 16,
     paddingTop: 60,
   },
@@ -214,7 +359,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     padding: 20,
     borderRadius: 14,
-    alignItems: 'flex-start',
     marginBottom: 20,
     borderWidth: 1.5,
     borderColor: '#d4c098',
@@ -228,16 +372,33 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
 
-  memoryImage: {
-    width: 160,
-    height: 100,
-    resizeMode: 'contain',
-    marginBottom: 8,
+  updatesRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
 
-  memoryText: {
+  updatesText: {
+    flex: 1,
+  },
+
+  memoryImage: {
+    width: 90,
+    height: 90,
+    borderRadius: 10,
+    resizeMode: 'cover',
+  },
+
+  updateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 4,
+  },
+
+  updateLine: {
+    flexShrink: 1,
     fontFamily: 'Gaegu-Regular',
-    marginLeft: 35,
     fontSize: 14,
     color: '#555',
   },
@@ -257,8 +418,19 @@ const styles = StyleSheet.create({
     fontFamily: 'Gaegu-Regular',
   },
 
+  spinner: {
+    marginTop: 40,
+  },
+
+  error: {
+    fontFamily: 'Gaegu-Regular',
+    fontSize: 18,
+    textAlign: 'center',
+    marginTop: 40,
+    color: '#a83232',
+  },
+
   empty: {
-    fontStyle: 'italic',
     fontSize: 20,
     fontFamily: 'Gaegu-Light',
     textAlign: 'center',
@@ -271,7 +443,7 @@ const styles = StyleSheet.create({
   },
 
   chatCard: {
-    backgroundColor: '#fcf0d4',
+    backgroundColor: 'rgba(255,255,255,0.55)',
     borderRadius: 12,
     padding: 12,
     flexDirection: 'row',
@@ -292,12 +464,29 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: '#e8dab9',
     marginRight: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  chatAvatarLetter: {
+    fontFamily: 'Gaegu-Bold',
+    fontSize: 22,
+    color: '#8f741d',
+  },
+
+  chatText: {
+    flex: 1,
   },
 
   chatName: {
-    flex: 1,
     fontSize: 22,
     fontFamily: 'Outfit-Light',
     color: '#6d500c',
+  },
+
+  chatPreview: {
+    fontSize: 13,
+    fontFamily: 'Gaegu-Light',
+    color: '#8a7a55',
   },
 });

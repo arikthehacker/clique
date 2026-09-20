@@ -1,36 +1,28 @@
 /**
  * ==============================
  * FILE: app/groupchat/create.tsx
- * Last Updated: 2026-05-01
+ * Last Updated: 2026-09-18
  * ==============================
  *
  * PURPOSE:
- * This screen lets the user create a new group chat from the app flow.
- * It collects a group name, builds a temporary group object, and sends it
- * back to the home screen through route params.
+ * Creates a new group chat. Takes a name, saves the group through
+ * GroupContext, and goes back to the home screen.
  *
  * Includes:
- * - Group chat name input
- * - Create button
- * - Empty-name guard so blank groups are not created
- * - Temporary local group object
- * - Route back to /home with the new group data
- * - Cancel button
+ * - Group name input
+ * - Create button with a spinner while saving
+ * - Validation message for blank or too-long names
+ * - Free plan group cap, with a link to plans
+ * - Cancel
  *
  * Notes:
- * - This is currently front-end/demo logic.
- * - The new group is passed through route params instead of saved permanently.
- * - Later, this should create a Firestore group document and attach it to the
- *   current user's group list.
- * - Image support is scaffolded with image: null and can connect to an image
- *   picker or Firebase Storage later.
+ * - Group photos are not supported yet.
  */
 
-import React, {
-  useState,
-} from 'react';
+import { useState } from 'react';
 
 import {
+  ActivityIndicator,
   StyleSheet,
   Text,
   TextInput,
@@ -38,41 +30,81 @@ import {
   View,
 } from 'react-native';
 
+import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 
-type NewGroup = {
-  id: string;
-  name: string;
-  image: string | null;
-};
+import { useAuth } from '../../src/context/AuthContext';
+import { useGroups } from '../../src/context/GroupContext';
+import {
+  canCreateGroup,
+  effectivePlan,
+  FREE_GROUP_LIMIT,
+} from '../../src/lib/plans';
+import { validateGroupName } from '../../src/lib/validation';
 
 export default function CreateGroupChat() {
   const router = useRouter();
+  const { user } = useAuth();
+
+  const {
+    groups,
+    createGroup,
+  } = useGroups();
+
+  const plan = user ? effectivePlan(user.plan, user.trialStartedAt) : 'free';
+  const capped = !canCreateGroup(plan, groups.length);
 
   const [
     name,
     setName,
   ] = useState('');
 
-  const handleCreate = () => {
-    // no blank group chat names, because chaos
-    if (!name.trim()) {
+  const [
+    error,
+    setError,
+  ] = useState<string | null>(null);
+
+  const [
+    saving,
+    setSaving,
+  ] = useState(false);
+
+  const handleCreate = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+    const problem = validateGroupName(name);
+
+    if (problem) {
+      setError(problem);
       return;
     }
 
-    const newGroup: NewGroup = {
-      id: Date.now().toString(),
-      name: name.trim(),
-      image: null,
-    };
+    // free plan caps how many groups you get
+    if (capped) {
+      setError(`the free plan tops out at ${FREE_GROUP_LIMIT} groups`);
+      return;
+    }
 
-    // sends the temporary group back home for the current demo flow
-    router.replace({
-      pathname: '/home',
-      params: {
-        newGroup: JSON.stringify(newGroup),
-      },
-    });
+    setError(null);
+    setSaving(true);
+
+    try {
+      await createGroup(name.trim());
+      router.back();
+    } catch (createError) {
+      setError(createError instanceof Error ? createError.message : 'Could not create the group.');
+      setSaving(false);
+    }
+  };
+
+  const openPlans = () => {
+    Haptics.selectionAsync();
+    router.push('/plan');
+  };
+
+  const handleCancel = () => {
+    Haptics.selectionAsync();
+    router.back();
   };
 
   return (
@@ -84,21 +116,42 @@ export default function CreateGroupChat() {
       {/* group name for the new chat */}
       <TextInput
         placeholder="What's your group chat name?"
+        placeholderTextColor="#9a8a5a"
         value={name}
         onChangeText={setName}
         style={styles.input}
+        autoFocus
       />
+
+      {error && (
+        <Text style={styles.error}>
+          {error}
+        </Text>
+      )}
 
       <TouchableOpacity
         style={styles.button}
         onPress={handleCreate}
+        disabled={saving}
       >
-        <Text style={styles.buttonText}>
-          Create
-        </Text>
+        {saving ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.buttonText}>
+            Create
+          </Text>
+        )}
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => router.back()}>
+      {capped && (
+        <TouchableOpacity onPress={openPlans}>
+          <Text style={styles.planLink}>
+            see plans
+          </Text>
+        </TouchableOpacity>
+      )}
+
+      <TouchableOpacity onPress={handleCancel}>
         <Text style={styles.cancel}>
           Cancel
         </Text>
@@ -135,6 +188,14 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
 
+  error: {
+    color: '#a83232',
+    fontFamily: 'Gaegu-Regular',
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+
   button: {
     backgroundColor: '#b7931d',
     padding: 5,
@@ -142,6 +203,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 40,
     marginBottom: 14,
+    minHeight: 44,
+    justifyContent: 'center',
   },
 
   buttonText: {
@@ -149,6 +212,14 @@ const styles = StyleSheet.create({
     fontSize: 25,
     fontFamily: 'Gaegu-Light',
     fontWeight: '600',
+  },
+
+  planLink: {
+    textAlign: 'center',
+    color: '#b7931d',
+    fontFamily: 'Gaegu-Bold',
+    fontSize: 18,
+    marginBottom: 10,
   },
 
   cancel: {

@@ -1,39 +1,73 @@
+/**
+ * ==============================
+ * FILE: app/index.tsx
+ * Last Updated: 2026-09-18
+ * ==============================
+ *
+ * PURPOSE:
+ * The tap-to-start screen, the first thing anyone sees. One tap bursts the
+ * sun into rays and moves on to sign in.
+ *
+ * Includes:
+ * - Pulsing sun near the title
+ * - Swaying wheat
+ * - Sunburst rays on tap
+ * - Fade out, then on to /auth
+ */
 
-
-import React, { useEffect, useRef, useState } from 'react';
 import {
-  View,
-  Text,
+  useEffect,
+  useState,
+} from 'react';
+
+import {
+  Animated,
+  Dimensions,
+  Image,
   Pressable,
   StyleSheet,
-  Animated,
-  Image,
-  Dimensions,
+  Text,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 
-export default function WelcomeScreen() {
+const wheatShadow = require('../assets/images/wheat-rand.png');
+const wheatHero = require('../assets/images/wheat-right.png');
+
+const RAY_COUNT = 8;
+const RAY_DISTANCE = 60;
+
+const screenWidth = Dimensions.get('window').width;
+
+export default function StartScreen() {
   const router = useRouter();
-  const pulse = useRef(new Animated.Value(1)).current;
-  const fadeOut = useRef(new Animated.Value(1)).current;
-  const [circlePos, setCirclePos] = useState({ x: 100, y: 200 });
-  const [explode, setExplode] = useState(false);
-  const rays = Array.from({ length: 8 }, (_, i) => useRef(new Animated.Value(0)).current);
-  const sway = useRef(new Animated.Value(0)).current; 
 
-  const { width } = Dimensions.get('window');
+  const [pulse] = useState(() => new Animated.Value(1));
+  const [fadeOut] = useState(() => new Animated.Value(1));
+  const [sway] = useState(() => new Animated.Value(0));
 
-  // sun circle spawn near welcome text randomized 
+  const [rays] = useState(() =>
+    Array.from(
+      { length: RAY_COUNT },
+      () => new Animated.Value(0),
+    ),
+  );
+
+  // sun lands somewhere new near the title every time
+  const [circlePos] = useState(() => ({
+    x: Math.random() * (screenWidth * 0.6) + screenWidth * 0.2,
+    y: 200 + Math.random() * 30,
+  }));
+
+  const [
+    explode,
+    setExplode,
+  ] = useState(false);
+
   useEffect(() => {
-    const x = Math.random() * (width * 0.6) + width * 0.2;
-    const y = 200 + Math.random() * 30; // stays close to welcome text
-    setCirclePos({ x, y });
-  }, []);
-
-  // pulse forever
-  useEffect(() => {
+    // pulse forever
     Animated.loop(
       Animated.sequence([
         Animated.timing(pulse, {
@@ -46,13 +80,10 @@ export default function WelcomeScreen() {
           duration: 1000,
           useNativeDriver: true,
         }),
-      ])
+      ]),
     ).start();
-  }, []);
 
-
-  // 💥 I PUT THIS HEREEEEEE: animate wheat sway
-  useEffect(() => {
+    // wheat sway
     Animated.loop(
       Animated.sequence([
         Animated.timing(sway, {
@@ -65,26 +96,33 @@ export default function WelcomeScreen() {
           duration: 3000,
           useNativeDriver: true,
         }),
-      ])
+      ]),
     ).start();
-  }, []);
-
+  }, [
+    pulse,
+    sway,
+  ]);
 
   const handleTap = () => {
-    Haptics.selectionAsync(); // haptic feedback 💥
-    setExplode(true); // show sunburst
+    // one burst only, no double trip to /auth
+    if (explode) {
+      return;
+    }
 
-    // animate rays
-    rays.forEach((ray, i) => {
+    Haptics.selectionAsync();
+    setExplode(true);
+
+    // rays fan out one after another
+    rays.forEach((ray, index) => {
       Animated.timing(ray, {
         toValue: 1,
         duration: 400,
-        delay: i * 30,
+        delay: index * 30,
         useNativeDriver: true,
       }).start();
     });
 
-    // fade + navigate
+    // fade the sun, then move on
     Animated.parallel([
       Animated.timing(pulse, {
         toValue: 2,
@@ -101,23 +139,33 @@ export default function WelcomeScreen() {
     });
   };
 
-
-
   return (
     <LinearGradient
-      colors={['#E1BD31', '#Ffffff']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
+      colors={[
+        '#E1BD31',
+        '#Ffffff',
+      ]}
+      start={{
+        x: 0,
+        y: 0,
+      }}
+      end={{
+        x: 1,
+        y: 1,
+      }}
       style={styles.gradientContainer}
     >
-      <Pressable style={styles.pressableFill} onPress={handleTap}>
+      <Pressable
+        style={styles.pressableFill}
+        onPress={handleTap}
+      >
         {/* central pulsing circle */}
         <Animated.View
           style={[
             styles.circle,
             {
-              top:    circlePos.y,
-              left:   circlePos.x,
+              top: circlePos.y,
+              left: circlePos.x,
               opacity: fadeOut,
               transform: [{ scale: pulse }],
             },
@@ -126,14 +174,14 @@ export default function WelcomeScreen() {
 
         {/* sunburst rays */}
         {explode &&
-          rays.map((ray, i) => {
-            const angle     = (i * 360) / rays.length;
-            const translateX = 60 * Math.cos((angle * Math.PI) / 180);
-            const translateY = 60 * Math.sin((angle * Math.PI) / 180);
+          rays.map((ray, index) => {
+            const angle = (index * 360) / rays.length;
+            const translateX = RAY_DISTANCE * Math.cos((angle * Math.PI) / 180);
+            const translateY = RAY_DISTANCE * Math.sin((angle * Math.PI) / 180);
 
             return (
               <Animated.View
-                key={i}
+                key={index}
                 style={[
                   styles.ray,
                   {
@@ -143,13 +191,13 @@ export default function WelcomeScreen() {
                     transform: [
                       {
                         translateX: ray.interpolate({
-                          inputRange:  [0, 1],
+                          inputRange: [0, 1],
                           outputRange: [0, translateX],
                         }),
                       },
                       {
                         translateY: ray.interpolate({
-                          inputRange:  [0, 1],
+                          inputRange: [0, 1],
                           outputRange: [0, translateY],
                         }),
                       },
@@ -160,15 +208,27 @@ export default function WelcomeScreen() {
             );
           })}
 
-        <Text style={styles.subtle}>welcome to</Text>
-        <Text style={styles.title}>Clique</Text>
-        <Text style={styles.tap}>tap anywhere to continue</Text>
-        {/* I PUT THIS HEREEEEEE: wheat shadow background */}
-        <Image source={require('../assets/images/wheat-rand.png')} style={styles.shadow} />
+        <Text style={styles.subtle}>
+          welcome to
+        </Text>
 
-        {/* I PUT THIS HEREEEEEE: wheat hero image animated */}
+        <Text style={styles.title}>
+          Clique
+        </Text>
+
+        <Text style={styles.tap}>
+          tap anywhere to continue
+        </Text>
+
+        {/* wheat shadow in the background */}
+        <Image
+          source={wheatShadow}
+          style={styles.shadow}
+        />
+
+        {/* wheat hero image, swaying */}
         <Animated.Image
-          source={require('../assets/images/wheat-right.png')}
+          source={wheatHero}
           style={[
             styles.wheat,
             {
@@ -188,16 +248,18 @@ export default function WelcomeScreen() {
   );
 }
 
-
+// start screen styling
 const styles = StyleSheet.create({
   gradientContainer: {
     flex: 1,
   },
+
   pressableFill: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
+
   circle: {
     position: 'absolute',
     width: 180,
@@ -206,6 +268,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.6)',
     zIndex: -1,
   },
+
   ray: {
     position: 'absolute',
     width: 10,
@@ -213,6 +276,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     backgroundColor: '#fff',
   },
+
   subtle: {
     fontSize: 60,
     color: '#8f741d',
@@ -221,6 +285,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     marginTop: -80,
   },
+
   title: {
     fontSize: 130,
     fontWeight: 'bold',
@@ -228,13 +293,15 @@ const styles = StyleSheet.create({
     color: '#8f741d',
     marginBottom: 20,
   },
+
   tap: {
     fontSize: 20,
     color: '#b7931d',
     fontFamily: 'Outfit-Regular',
     marginTop: 100,
   },
-    wheat: {
+
+  wheat: {
     position: 'absolute',
     bottom: -50,
     right: -10,
@@ -243,6 +310,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
     opacity: 0.35,
   },
+
   shadow: {
     top: 250,
     left: 250,
@@ -253,4 +321,3 @@ const styles = StyleSheet.create({
     zIndex: 0,
   },
 });
-

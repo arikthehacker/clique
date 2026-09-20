@@ -1,56 +1,176 @@
-/* FILE:          CliqueApp/app/layout.tsx
-   LAST UPDATED:  2025-04-23
-   PURPOSE:       Defines the root layout shared across all app screens (used by expo-router)
-   BEHAVIOR:      Wraps all pages with custom font setup and suppresses default splash
-   NOTES:         Gloabl layout stuff like fonts, SafeArea, and app-wide providers go here
-**************************************************************************************************/
-import { MemoryProvider } from './_context/MemoryContext'
+/**
+ * ==============================
+ * FILE: app/_layout.tsx
+ * Last Updated: 2026-09-18
+ * ==============================
+ *
+ * PURPOSE:
+ * The root layout every screen renders inside. Loads fonts, mounts the
+ * providers, and keeps signed-out users out of the app screens.
+ *
+ * Includes:
+ * - Splash screen held until fonts load, with a timeout
+ * - Gesture, safe area and error boundary wrappers
+ * - Auth, group, planning, memory, calendar and steps providers
+ * - Redirect to /auth when nobody is signed in
+ */
 
+import {
+  ReactNode,
+  useEffect,
+  useState,
+} from 'react';
 
-import { Slot } from 'expo-router'          // show correct screen from curr route
-import { useFonts } from 'expo-font'        // loads custom fonts
-import { SplashScreen } from 'expo-router'  // hides default splash screen
-import { useEffect } from 'react';          // run code when app mounts
+import {
+  StyleSheet,
+  View,
+} from 'react-native';
 
+import { useFonts } from 'expo-font';
+import {
+  Slot,
+  SplashScreen,
+  useRouter,
+  useSegments,
+} from 'expo-router';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import ErrorBoundary from '../src/components/ErrorBoundary';
+import {
+  AuthProvider,
+  useAuth,
+} from '../src/context/AuthContext';
+import { CalendarProvider } from '../src/context/CalendarContext';
+import { GroupProvider } from '../src/context/GroupContext';
+import { MemoryProvider } from '../src/context/MemoryContext';
+import { PlanningProvider } from '../src/context/PlanningContext';
+import { StepsProvider } from '../src/context/StepsContext';
+import { configureNotifications } from '../src/lib/notifications';
+
+// keep the splash up while fonts load
+SplashScreen.preventAutoHideAsync();
+
+configureNotifications();
+
+const FONT_TIMEOUT_MS = 4000;
+
+// screens that need a signed-in user
+const PROTECTED_SEGMENTS = [
+  'home',
+  'groupchat',
+  'memory',
+  'calendar',
+  'avatar',
+  'welcome',
+  'questions',
+  'plan',
+  'widget',
+];
+
+function RouteGuard({ children }: { children: ReactNode }) {
+  const {
+    user,
+    loading,
+  } = useAuth();
+
+  const segments = useSegments();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (loading) {
+      return;
+    }
+
+    const inProtectedArea = PROTECTED_SEGMENTS.includes(segments[0] ?? '');
+
+    // no session, no app screens
+    if (!user && inProtectedArea) {
+      router.replace('/auth');
+    }
+  }, [
+    user,
+    loading,
+    segments,
+    router,
+  ]);
+
+  // screens wait for the saved account so their fields start filled in
+  if (loading) {
+    return <View style={styles.loading} />;
+  }
+
+  return <>{children}</>;
+}
 
 export default function Layout() {
-  const [fontsLoaded] = useFonts({
-  'Gaegu-Regular': require('../assets/fonts/Gaegu-Regular.ttf'),
-  'Gaegu-Bold': require('../assets/fonts/Gaegu-Bold.ttf'),
-  'Gaegu-Light': require('../assets/fonts/Gaegu-Light.ttf'),
-
-  'Outfit-Regular': require('../assets/fonts/Outfit-Regular.ttf'),
-  'Outfit-Bold': require('../assets/fonts/Outfit-Bold.ttf'),
-  'Outfit-Light': require('../assets/fonts/Outfit-Light.ttf'),
-  'Outfit-Medium': require('../assets/fonts/Outfit-Medium.ttf'),
-  'Outfit-SemiBold': require('../assets/fonts/Outfit-SemiBold.ttf'),
-  'Outfit-ExtraBold': require('../assets/fonts/Outfit-ExtraBold.ttf'),
-  'Outfit-Thin': require('../assets/fonts/Outfit-Thin.ttf'),
-  'Outfit-Black': require('../assets/fonts/Outfit-Black.ttf'),
-
-  'Figtree-Regular': require('../assets/fonts/Figtree-Regular.ttf'),
-  'Figtree-Bold': require('../assets/fonts/Figtree-Bold.ttf'),
-  'Figtree-Light': require('../assets/fonts/Figtree-Light.ttf'),
-  'Figtree-SemiBold': require('../assets/fonts/Figtree-SemiBold.ttf'),
-  'Figtree-ExtraBold': require('../assets/fonts/Figtree-ExtraBold.ttf'),
-
-  'Manjari-Regular': require('../assets/fonts/Manjari-Regular.ttf'),
-  'Manjari-Bold': require('../assets/fonts/Manjari-Bold.ttf'),
-  'Manjari-Thin': require('../assets/fonts/Manjari-Thin.ttf'), 
+  const [
+    fontsLoaded,
+    fontError,
+  ] = useFonts({
+    'Gaegu-Regular': require('../assets/fonts/Gaegu-Regular.ttf'),
+    'Gaegu-Bold': require('../assets/fonts/Gaegu-Bold.ttf'),
+    'Gaegu-Light': require('../assets/fonts/Gaegu-Light.ttf'),
+    'Outfit-Regular': require('../assets/fonts/Outfit-Regular.ttf'),
+    'Outfit-Light': require('../assets/fonts/Outfit-Light.ttf'),
+    'Figtree-Regular': require('../assets/fonts/Figtree-Regular.ttf'),
+    'Figtree-Light': require('../assets/fonts/Figtree-Light.ttf'),
+    'Figtree-SemiBold': require('../assets/fonts/Figtree-SemiBold.ttf'),
   });
 
+  const [
+    timedOut,
+    setTimedOut,
+  ] = useState(false);
 
-  /* Hide splash screen ONLY after out fonts are done loading */
-  useEffect(() => 
-  { if (fontsLoaded) { SplashScreen.hideAsync();} }, [fontsLoaded]);
-  if (!fontsLoaded)  // if still loading, don't show anything yet.
-  { return null;}
+  useEffect(() => {
+    // fonts hanging? show the app anyway
+    const timer = setTimeout(() => setTimedOut(true), FONT_TIMEOUT_MS);
 
-  /* THIS RETURNS THE ACTUAL SCREEN, LIKE A WRAPPER FOR EVERY PAGE IN THE APP */ 
+    return () => clearTimeout(timer);
+  }, []);
+
+  const ready = fontsLoaded || Boolean(fontError) || timedOut;
+
+  useEffect(() => {
+    if (ready) {
+      SplashScreen.hideAsync();
+    }
+  }, [ready]);
+
+  if (!ready) {
+    return null;
+  }
+
   return (
-    <MemoryProvider>
-      <Slot />
-    </MemoryProvider>
-   )
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <ErrorBoundary>
+          <AuthProvider>
+            <GroupProvider>
+              <PlanningProvider>
+                <MemoryProvider>
+                  <CalendarProvider>
+                    <StepsProvider>
+                      <RouteGuard>
+                        <Slot />
+                      </RouteGuard>
+                    </StepsProvider>
+                  </CalendarProvider>
+                </MemoryProvider>
+              </PlanningProvider>
+            </GroupProvider>
+          </AuthProvider>
+        </ErrorBoundary>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
+  );
 }
+
+// layout styling
+const styles = StyleSheet.create({
+  loading: {
+    flex: 1,
+    backgroundColor: '#F1E3C0',
+  },
+});
