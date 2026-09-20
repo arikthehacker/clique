@@ -6,19 +6,13 @@ I built the working MVP in Expo and TypeScript with a business-student partner o
 
 ## Project Status
 
-This repo contains the MVP/prototype version of Clique. It is not a production app yet.
+This repo contains the working MVP of Clique. It is not in the app stores yet.
 
-The current version focuses on:
+The app runs end to end with no setup. Sign up, groups, chat, memories, the calendar and steps all save on the phone, so anyone can clone it and try the whole flow in Expo Go.
 
-- mobile UI and navigation
-- onboarding flow
-- group chat structure
-- memory feature prototypes
-- calendar feature prototypes
-- settings and profile sidebar overlays
-- demo-ready app flow
+Filling in a Firebase config in `.env` moves the same screens onto Firebase Auth, Firestore and Storage, with the rules in `firestore.rules` and `storage.rules`.
 
-Firebase setup has been started for future Auth and Firestore support, but the main completed work in this repo is the front-end mobile experience.
+The version I presented at the venture competition is tagged `v1.0-competition`.
 
 ## Why I Built It
 
@@ -38,22 +32,38 @@ I built Clique alongside a business partner over six months of biweekly collabor
 
 ## Core Features
 
-- Welcome, sign up, and login screens
-- Avatar upload and username selection flow
-- Profile question onboarding
-- Swipeable home layout with Group, Memory, and Calendar tabs
-- Custom animated tab bar
-- Group chat home screen
-- Group chat creation flow
-- Individual group chat room with sender/receiver message layout
-- Group settings modal
-- Profile peek modal
-- Memory capture/prototype screens
-- Frame and caption memory flow
-- Widget preview mockup
-- Master calendar screen with add-event modal
-- Settings sidebar overlay
-- User profile sidebar overlay
+**Onboarding and profile**
+
+- Sign up and log in, username, profile photo, and intro questions
+- Profile with a bio, a phone number only your groups see, an avatar frame, and a QR invite code
+- Off the grid, which pauses nudges and reminders, and simple mode for bigger text and tap targets
+
+**Groups and chat**
+
+- Swipeable home layout with Group, Memory and Calendar tabs, and a custom animated tab bar
+- Group chats with photos, invites by username, blocking, reporting and leaving
+- Polls, a shared to-do list, a daily question, and bill splitting that works out the fewest payments
+- A nudge that asks the group what they are up to
+
+**Memories**
+
+- Camera capture with polaroid and gold frames
+- Stickers I drew by hand, placed on the photo and saved as positions so the original stays clean
+- Reactions, replies, saving a memory to your photo library, and reporting one
+- A reminder schedule per group, so the app asks for a memory on the days you choose
+
+**Calendar**
+
+- Month, week and day views with group events and RSVPs
+- Event templates that drop a checklist into the group's to-do list
+- Your phone's calendar read as anonymous busy blocks, which never leave the phone
+- Find a time, which overlaps everyone's shared free windows
+
+**The rest**
+
+- A step streak that unlocks more sticker sets
+- Plans and a trial, referral codes, privacy and help screens, and a widget preview
+- 67 tests over the logic: voting, balances, streaks, free-time overlaps, plans and validation
 
 ## Tech Stack
 
@@ -63,9 +73,11 @@ I built Clique alongside a business partner over six months of biweekly collabor
 | Language | TypeScript |
 | Navigation | Expo Router |
 | UI/UX | Figma, custom React Native styling |
-| Camera / media | Expo Camera, Expo Image Picker |
-| Haptics | Expo Haptics |
-| Backend direction | Firebase Auth, Firestore |
+| State | React context, AsyncStorage |
+| Camera / media | Expo Camera, Expo Image Picker, Expo Media Library |
+| Device | Expo Notifications, Expo Calendar, Expo Sensors (pedometer), Expo Haptics |
+| Backend | Firebase Auth, Firestore, Storage, with security rules |
+| Testing | Jest, ESLint, TypeScript strict mode |
 | Testing/demo | Expo Go |
 
 ## My Role
@@ -141,20 +153,32 @@ This process helped me move from rough screen ideas toward a more usable MVP. It
 <p align="center">
 </p>
 
-### Onboarding Flow
+### The App Today
+
+| Home | Group Chat | Memories |
+|---|---|---|
+| <img src="docs/screenshots/home.jpg" alt="Clique home screen" width="200" /> | <img src="docs/screenshots/group-chat.jpg" alt="Clique group chat" width="200" /> | <img src="docs/screenshots/memories.jpg" alt="Clique memories board" width="200" /> |
+
+| A Memory | Stickers | Calendar |
+|---|---|---|
+| <img src="docs/screenshots/memory.jpg" alt="Clique memory with stickers and reactions" width="200" /> | <img src="docs/screenshots/stickers.jpg" alt="Clique sticker tray" width="200" /> | <img src="docs/screenshots/calendar.jpg" alt="Clique calendar" width="200" /> |
+
+### The Competition Build
+
+#### Onboarding Flow
 
 | Welcome | Login/Signup | Username | Welcome User | Introduction Questions |
 |---|---|---|---|---|
 |   <img width="150" height="250" alt="Clique onboarding screenshot" src="https://github.com/user-attachments/assets/33fad06b-121d-4765-b3d3-96376242afda" /> |   <img width="150" height="250" alt="Clique login screenshot" src="https://github.com/user-attachments/assets/f0e8bef8-15ee-481c-8f6c-3cc554fdb7da" /> |   <img width="150" height="250" alt="Clique profile setup screenshot" src="https://github.com/user-attachments/assets/0c4c054d-e385-4692-8ed3-28fa2648983a" /> | <img width="150" height="250" alt="image" src="https://github.com/user-attachments/assets/7f7a11b1-6edc-4e0b-a265-761845c208a9" /> | <img width="150" height="250" alt="Clique group settings screenshot" src="https://github.com/user-attachments/assets/0330eac4-2465-4c99-b997-8902fe1c431d" /> |
 
 
-### Main App Flow
+#### Main App Flow
 
 | Home | Settings Sidebar | Profile Sidebar | Create a Group Chat | Group Chat |
 |---|---|---|---|---|
 | <img width="150" height="250" alt="image" src="https://github.com/user-attachments/assets/ac355d3c-577f-4913-9109-1f6abafcc56b" /> | <img width="150" height="250" alt="image" src="https://github.com/user-attachments/assets/38cf5957-d2fb-4f36-bd67-46c88241f02b" /> | | <img width="150" height="250" alt="image" src="https://github.com/user-attachments/assets/f833bfa2-cc1e-4384-9663-1188837d0040" /> | <img width="150" height="250" alt="image" src="https://github.com/user-attachments/assets/a0c44b1a-30dd-4357-a909-4bed3bc1def8" /> |
 
-### Memory and Calendar Features
+#### Memory and Calendar Features
 
 | Memory | Widget Preview | Calendar |
 |---|---|---|
@@ -189,44 +213,52 @@ The venture pitch added another layer. Judges asked about privacy, digital welln
 ```text
 app/
   calendar/
-    index.tsx
-    master.tsx
-
-  components/
-    AnimatedTabBar.tsx
-    BackButton.tsx
+    index.tsx            month, week and day views, RSVPs, find a time
 
   groupchat/
-    [id].tsx
+    [id].tsx             the chat room and its tools
     create.tsx
-    createtest.tsx
 
   home/
+    index.tsx            the three tabs
     GroupChatScreen.tsx
     SettingsSidebar.tsx
     UserProfileSidebar.tsx
-    index.tsx
 
   memory/
+    index.tsx            the memory board
+    [id].tsx             one memory: reactions, replies, save, share
     camera.tsx
-    index.tsx
-    post.tsx
+    post.tsx             frames, stickers, caption
 
-  avatar.tsx
+  _layout.tsx            providers and the route guard
   index.tsx
-  login.tsx
-  questions.tsx
-  signup.tsx
-  username.tsx
+  auth.tsx
+  avatar.tsx
   welcome.tsx
+  questions.tsx
+  plan.tsx
+  privacy.tsx
+  help.tsx
+  widget.tsx
 
 src/
-  firebase/
-    firebaseConfig.ts
-    userService.ts
-    groupService.ts
-    messageService.ts
+  components/            BackButton, AnimatedTabBar, ErrorBoundary,
+                         MemoryFrame, StickerLayer, StickerArt
 
+  context/               Auth, Group, Planning, Memory, Calendar, Steps
+
+  firebase/              auth, user, group, message, planning, event,
+                         memory, availability and storage services
+
+  lib/                   the logic, with tests: calendar, groups, polls,
+                         memories, availability, expenses, steps, plans,
+                         templates, validation, notifications
+
+  types.ts
+
+firestore.rules
+storage.rules
 ```
 
 ## Running Locally
@@ -242,4 +274,11 @@ Start the Expo development server:
 npx expo start
 ```
 
-Open the project with Expo Go or an iOS simulator.
+Open the project with Expo Go or an iOS simulator. It works right away with everything saved on the phone.
+
+To run it on Firebase instead, copy `.env.example` to `.env` and fill in a Firebase web config.
+
+Run the tests:
+```bash
+npm test
+```
