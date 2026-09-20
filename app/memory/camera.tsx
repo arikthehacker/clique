@@ -1,37 +1,32 @@
 /**
  * ==============================
  * FILE: app/memory/camera.tsx
- * Last Updated: 2026-05-01
+ * Last Updated: 2026-09-18
  * ==============================
  *
  * PURPOSE:
- * This screen handles the real camera capture flow for Clique memories.
- * It requests camera permission, shows the live camera view, captures a photo,
- * and sends that photo URI to the memory post screen.
+ * The camera step for a memory. Takes the photo and hands it to the post
+ * screen.
  *
  * Includes:
- * - Camera permission request
- * - Live Expo Camera preview
- * - Camera ref for taking photos
+ * - Camera permission prompt, with a settings link once it is denied
+ * - Live camera preview
  * - Capture button
- * - Route to /memory/post with the captured image URI
+ * - Back button
+ * - Opens /memory/post with the photo, and the group when it came from a chat
  *
  * Notes:
- * - This is the more functional camera-based memory flow.
- * - The captured image is passed through route params for now.
- * - Later, the photo should be uploaded to Firebase Storage and saved with
- *   memory metadata in Firestore.
- * - This file is separate from the memory mockup screen so camera behavior can
- *   be tested independently without breaking the demo layout.
+ * - The photo stays a local file until MemoryContext saves it.
  */
 
-import React, {
-  useEffect,
+import {
   useRef,
   useState,
 } from 'react';
 
 import {
+  Linking,
+  Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -39,75 +34,127 @@ import {
 } from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
-import { Camera } from 'expo-camera';
-import { useRouter } from 'expo-router';
+import {
+  CameraView,
+  useCameraPermissions,
+} from 'expo-camera';
+import * as Haptics from 'expo-haptics';
+import {
+  useLocalSearchParams,
+  useRouter,
+} from 'expo-router';
+
+import BackButton from '../../src/components/BackButton';
 
 export default function MemoryCamera() {
   const router = useRouter();
+  const { groupId } = useLocalSearchParams<{ groupId?: string }>();
 
   const [
-    hasPerm,
-    setHasPerm,
-  ] = useState<boolean | null>(null);
+    permission,
+    requestPermission,
+  ] = useCameraPermissions();
 
-  const cameraRef = useRef<Camera | null>(null);
+  const [
+    busy,
+    setBusy,
+  ] = useState(false);
 
-  useEffect(() => {
-    const requestPermission = async () => {
-      // asks for camera access before showing the camera screen
-      const {
-        status,
-      } = await Camera.requestCameraPermissionsAsync();
+  const [
+    failed,
+    setFailed,
+  ] = useState(false);
 
-      setHasPerm(status === 'granted');
-    };
-
-    requestPermission();
-  }, []);
+  const cameraRef = useRef<CameraView | null>(null);
 
   // waiting for the permission result
-  if (hasPerm === null) {
+  if (!permission) {
     return <View style={styles.filler} />;
   }
 
   // camera permission denied, no dramatic crash lol
-  if (!hasPerm) {
+  if (!permission.granted) {
+    const allow = () => {
+      Haptics.selectionAsync();
+
+      if (permission.canAskAgain) {
+        requestPermission();
+        return;
+      }
+
+      Linking.openSettings();
+    };
+
     return (
-      <Text style={styles.center}>
-        No access to camera
-      </Text>
+      <View style={styles.centerWrap}>
+        <BackButton />
+
+        <Text style={styles.center}>
+          Clique needs the camera to take a memory
+        </Text>
+
+        <Pressable
+          style={styles.allowBtn}
+          onPress={allow}
+        >
+          <Text style={styles.allowText}>
+            {permission.canAskAgain ? 'Allow camera' : 'Open settings'}
+          </Text>
+        </Pressable>
+      </View>
     );
   }
 
   const snap = async () => {
-    // do nothing if the camera ref is not ready yet
-    if (!cameraRef.current) {
+    // one shot at a time
+    if (!cameraRef.current || busy) {
       return;
     }
 
-    const photo = await cameraRef.current.takePictureAsync({
-      quality: 0.7,
-    });
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setBusy(true);
+    setFailed(false);
 
-    // sends the captured image to the post/edit screen
-    router.push({
-      pathname: '/memory/post',
-      params: {
-        uri: photo.uri,
-      },
-    });
+    try {
+      const photo = await cameraRef.current.takePictureAsync({
+        quality: 0.7,
+      });
+
+      // sends the captured image to the post/edit screen
+      router.push({
+        pathname: '/memory/post',
+        params: {
+          uri: photo.uri,
+          ...(groupId ? { groupId: groupId } : {}),
+        },
+      });
+    } catch {
+      setFailed(true);
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
     <View style={styles.container}>
-      <Camera
+      <CameraView
         style={styles.camera}
         ref={cameraRef}
+        facing="back"
       />
+
+      <BackButton />
+
+      {failed && (
+        <Text style={styles.failed}>
+          that one did not take, try again
+        </Text>
+      )}
 
       <TouchableOpacity
         style={styles.snapBtn}
         onPress={snap}
+        disabled={busy}
       >
         <Ionicons
           name="camera"
@@ -126,11 +173,33 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
   },
 
-  center: {
+  centerWrap: {
     flex: 1,
+    backgroundColor: '#F1E3C0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 32,
+  },
+
+  center: {
     textAlign: 'center',
-    marginTop: 50,
-    color: '#555',
+    fontFamily: 'Gaegu-Regular',
+    fontSize: 22,
+    color: '#5a4400',
+    marginBottom: 16,
+  },
+
+  allowBtn: {
+    backgroundColor: '#b7931d',
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+    borderRadius: 10,
+  },
+
+  allowText: {
+    color: '#fff',
+    fontFamily: 'Gaegu-Regular',
+    fontSize: 18,
   },
 
   container: {
@@ -139,6 +208,19 @@ const styles = StyleSheet.create({
 
   camera: {
     flex: 1,
+  },
+
+  failed: {
+    position: 'absolute',
+    bottom: 120,
+    alignSelf: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    color: '#fff',
+    fontFamily: 'Gaegu-Regular',
+    fontSize: 16,
   },
 
   snapBtn: {

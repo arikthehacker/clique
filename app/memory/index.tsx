@@ -1,309 +1,258 @@
 /**
  * ==============================
  * FILE: app/memory/index.tsx
- * Last Updated: 2026-05-01
+ * Last Updated: 2026-09-18
  * ==============================
  *
  * PURPOSE:
- * This screen is Clique's main memory prototype screen.
- * It lets the user preview a memory inside a frame, add a caption, save it
- * into a local recent memories feed, and preview how memories could look inside
- * a home-screen widget.
+ * The Memory tab. Every memory pinned up in its frame, newest first.
  *
  * Includes:
- * - Memory frame preview
- * - Camera button mockup
- * - Frame picker
- * - Caption input
- * - Save memory button
- * - Recent memories feed
- * - Widget preview modal
- * - KeyboardAvoidingView for easier caption typing
- *
- * Notes:
- * - This screen is a demo/MVP version of the memory feature.
- * - The camera button currently swaps in a local image instead of opening the
- *   real camera flow.
- * - Memories are stored in local component state right now.
- * - Later, this should connect to the camera route, Firebase Storage, and
- *   Firestore memory documents.
- * - This file is useful because it shows the full product idea visually even
- *   before the backend is connected.
+ * - Take a Memory button
+ * - Filter chips: all, just me, or one group
+ * - Two-column board of framed memories with their reactions
+ * - Tap a memory to open it
+ * - Loading, error, and empty states
  */
 
-import React, {
-  useRef,
-  useState,
-} from 'react';
+import { useState } from 'react';
 
 import {
+  ActivityIndicator,
   Dimensions,
-  Image,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import { useRouter } from 'expo-router';
 
-const windowWidth = Dimensions.get('window').width;
-const FRAME_SIZE = windowWidth * 0.7;
-const IMAGE_SIZE = FRAME_SIZE * 0.6;
+import MemoryFrame from '../../src/components/MemoryFrame';
+import { useGroups } from '../../src/context/GroupContext';
+import { useMemory } from '../../src/context/MemoryContext';
+import { reactionCounts } from '../../src/lib/memories';
+import { Memory } from '../../src/types';
 
-const basicSelfie = require('../../assets/images/basic-selfie.png');
-const basicSelfie2 = require('../../assets/images/basic-selfie2.png');
-const polaroidFrame = require('../../assets/images/polaroid-frame.png');
-const vintageFrame = require('../../assets/images/default-memory.png');
+const cardWidth = (Dimensions.get('window').width - 48) / 2;
 
-type FrameType = 'polaroid' | 'vintage';
+// a little tilt so the board looks pinned up by hand
+const TILTS = [
+  -2,
+  1.5,
+  1,
+  -1.5,
+];
 
-type Memory = {
-  id: string;
-  frame: FrameType;
-  caption: string;
-};
+const ALL = 'all';
+const MINE = 'mine';
 
 export default function MemoryIndex() {
-  const [
-    selectedFrame,
-    setSelectedFrame,
-  ] = useState<FrameType>('polaroid');
+  const router = useRouter();
 
-  const [
-    caption,
-    setCaption,
-  ] = useState('');
-
-  const [
+  const {
     memories,
-    setMemories,
-  ] = useState<Memory[]>([]);
+    loading,
+    error,
+  } = useMemory();
+
+  const { groups } = useGroups();
 
   const [
-    showPhoto,
-    setShowPhoto,
-  ] = useState(false);
+    filter,
+    setFilter,
+  ] = useState<string>(ALL);
 
-  const [
-    widgetVisible,
-    setWidgetVisible,
-  ] = useState(false);
+  const shown = memories.filter((memory) => {
+    if (filter === ALL) {
+      return true;
+    }
 
-  const scrollRef = useRef<ScrollView | null>(null);
+    if (filter === MINE) {
+      return memory.groupId === null;
+    }
 
-  const frameSource =
-    selectedFrame === 'polaroid'
-      ? polaroidFrame
-      : vintageFrame;
+    return memory.groupId === filter;
+  });
 
-  const addMemory = () => {
-    const newMemory: Memory = {
-      id: Date.now().toString(),
-      frame: selectedFrame,
-      caption: caption,
-    };
+  const groupName = (groupId: string | null) =>
+    groupId ? (groups.find((group) => group.id === groupId)?.name ?? 'a group') : 'just me';
 
-    // newest memories show first, like a cute little feed
-    setMemories((prevMemories) => [
-      newMemory,
-      ...prevMemories,
-    ]);
+  const openCamera = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    router.push('/memory/camera');
+  };
 
-    setCaption('');
-    setShowPhoto(false);
+  const openMemory = (memory: Memory) => {
+    Haptics.selectionAsync();
 
-    // pops back to the top so the saved memory is visible right away
-    scrollRef.current?.scrollTo({
-      y: 0,
-      animated: true,
+    router.push({
+      pathname: '/memory/[id]',
+      params: {
+        id: memory.id,
+      },
     });
   };
 
+  const pickFilter = (value: string) => {
+    Haptics.selectionAsync();
+    setFilter(value);
+  };
+
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
-      <ScrollView
-        contentContainerStyle={styles.scroll}
-        ref={scrollRef}
-        keyboardShouldPersistTaps="handled"
-      >
+    <View style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scroll}>
         <Text style={styles.title}>
-          Take a Memory
+          Memories
         </Text>
 
-        {/* frame preview area */}
-        <View style={styles.frameContainer}>
-          <Image
-            source={frameSource}
-            style={styles.frameImage}
+        <TouchableOpacity
+          style={styles.takeBtn}
+          onPress={openCamera}
+        >
+          <Ionicons
+            name="camera"
+            size={22}
+            color="#fffef2"
           />
 
-          {showPhoto && (
-            <Image
-              source={basicSelfie}
-              style={styles.selfieImage}
-            />
-          )}
-
-          {!showPhoto && (
-            <TouchableOpacity
-              style={styles.cameraButton}
-              onPress={() => setShowPhoto(true)}
-            >
-              <Ionicons
-                name="camera-outline"
-                size={32}
-                color="#fff"
-              />
-            </TouchableOpacity>
-          )}
-        </View>
-
-        {/* frame picker */}
-        <View style={styles.pickerRow}>
-          <TouchableOpacity
-            style={[
-              styles.pickerButton,
-              selectedFrame === 'polaroid' && styles.pickerActive,
-            ]}
-            onPress={() => setSelectedFrame('polaroid')}
-          >
-            <Text style={styles.pickerText}>
-              Polaroid
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.pickerButton,
-              selectedFrame === 'vintage' && styles.pickerActive,
-            ]}
-            onPress={() => setSelectedFrame('vintage')}
-          >
-            <Text style={styles.pickerText}>
-              Vintage
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* caption for the memory */}
-        <TextInput
-          style={styles.captionInput}
-          placeholder="Add a caption..."
-          value={caption}
-          onChangeText={setCaption}
-        />
-
-        {/* action buttons */}
-        <View style={styles.buttonRow}>
-          <TouchableOpacity
-            style={styles.previewBtn}
-            onPress={() => setWidgetVisible(true)}
-          >
-            <Text style={styles.btnText}>
-              Preview Widget
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.saveBtn}
-            onPress={addMemory}
-            disabled={!showPhoto}
-          >
-            <Text style={styles.btnText}>
-              Save Memory
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* recent memories feed */}
-        <Text style={styles.sectionTitle}>
-          Recent Memories
-        </Text>
-
-        {memories.length === 0 ? (
-          <Text style={styles.emptyText}>
-            No memories yet...
+          <Text style={styles.takeText}>
+            Take a Memory
           </Text>
-        ) : (
-          memories.map((memory) => (
-            <View
-              key={memory.id}
-              style={styles.memoryCard}
+        </TouchableOpacity>
+
+        {/* filter chips */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.chips}
+        >
+          {[
+            {
+              key: ALL,
+              label: 'all',
+            },
+            {
+              key: MINE,
+              label: 'just me',
+            },
+            ...groups.map((group) => ({
+              key: group.id,
+              label: group.name,
+            })),
+          ].map((chip) => (
+            <TouchableOpacity
+              key={chip.key}
+              style={[
+                styles.chip,
+                filter === chip.key && styles.chipActive,
+              ]}
+              onPress={() => pickFilter(chip.key)}
             >
-              <Image
-                source={
-                  memory.frame === 'polaroid'
-                    ? polaroidFrame
-                    : vintageFrame
-                }
-                style={styles.cardFrame}
-              />
-
-              <Image
-                source={basicSelfie}
-                style={styles.cardSelfie}
-                resizeMode="cover"
-              />
-
-              <Text style={styles.cardCaption}>
-                {memory.caption}
+              <Text
+                style={[
+                  styles.chipText,
+                  filter === chip.key && styles.chipTextActive,
+                ]}
+              >
+                {chip.label}
               </Text>
-            </View>
-          ))
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        {loading && (
+          <ActivityIndicator color="#b7931d" />
         )}
 
-        {/* widget preview modal */}
-        <Modal
-          transparent
-          visible={widgetVisible}
-          animationType="slide"
-        >
-          <View style={styles.modalOverlay}>
-            <View style={styles.widgetContainer}>
-              <Text style={styles.widgetTitle}>
-                Memory Widget - Picnic Club
-              </Text>
+        {error && (
+          <Text style={styles.errorText}>
+            could not load memories: {error}
+          </Text>
+        )}
 
-              <View style={styles.widgetGrid}>
-                {[1, 2, 3, 4].map((userNumber) => (
-                  <View
-                    key={userNumber}
-                    style={styles.widgetItem}
-                  >
-                    <Image
-                      source={basicSelfie}
-                      style={styles.widgetImage}
-                    />
+        {/* empty board, the blank polaroid opens the camera */}
+        {!loading && !error && shown.length === 0 && (
+          <TouchableOpacity
+            style={styles.emptyCard}
+            onPress={openCamera}
+          >
+            <Ionicons
+              name="camera-outline"
+              size={36}
+              color="#b7931d"
+            />
+          </TouchableOpacity>
+        )}
 
-                    <Text style={styles.widgetName}>
-                      User{userNumber}
-                    </Text>
-                  </View>
-                ))}
-              </View>
+        <View style={styles.board}>
+          {shown.map((memory, index) => {
+            const counts = reactionCounts(memory);
 
+            return (
               <TouchableOpacity
-                onPress={() => setWidgetVisible(false)}
-                style={styles.closeWidgetBtn}
+                key={memory.id}
+                style={styles.card}
+                onPress={() => openMemory(memory)}
+                activeOpacity={0.9}
               >
-                <Text style={styles.closeText}>
-                  Close
-                </Text>
+                <MemoryFrame
+                  uri={memory.uri}
+                  frame={memory.frame}
+                  width={cardWidth}
+                  stickers={memory.stickers}
+                  caption={memory.caption}
+                  tilt={TILTS[index % TILTS.length]}
+                />
+
+                <View style={styles.meta}>
+                  <Text
+                    style={styles.metaGroup}
+                    numberOfLines={1}
+                  >
+                    {groupName(memory.groupId)}
+                  </Text>
+
+                  {counts.map((row) => (
+                    <View
+                      key={row.reaction}
+                      style={styles.metaCount}
+                    >
+                      <Ionicons
+                        name={row.reaction as keyof typeof Ionicons.glyphMap}
+                        size={12}
+                        color="#8f741d"
+                      />
+
+                      <Text style={styles.metaText}>
+                        {row.count}
+                      </Text>
+                    </View>
+                  ))}
+
+                  {memory.replies.length > 0 && (
+                    <View style={styles.metaCount}>
+                      <Ionicons
+                        name="chatbubble"
+                        size={11}
+                        color="#8f741d"
+                      />
+
+                      <Text style={styles.metaText}>
+                        {memory.replies.length}
+                      </Text>
+                    </View>
+                  )}
+                </View>
               </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
+            );
+          })}
+        </View>
       </ScrollView>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
@@ -315,201 +264,122 @@ const styles = StyleSheet.create({
   },
 
   scroll: {
-    alignItems: 'center',
-    paddingVertical: 20,
+    paddingTop: 24,
+    paddingBottom: 110,
   },
 
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontFamily: 'Gaegu-Bold',
-    marginBottom: 20,
+    color: '#4a3b12',
+    marginHorizontal: 20,
+    marginBottom: 12,
   },
 
-  frameContainer: {
-    width: FRAME_SIZE,
-    height: FRAME_SIZE,
-    marginBottom: 16,
+  takeBtn: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-
-  frameImage: {
-    position: 'absolute',
-    width: FRAME_SIZE,
-    height: FRAME_SIZE,
-  },
-
-  selfieImage: {
-    width: IMAGE_SIZE,
-    height: IMAGE_SIZE,
-    borderRadius: 6,
-  },
-
-  cameraButton: {
-    width: IMAGE_SIZE,
-    height: IMAGE_SIZE,
-    borderRadius: IMAGE_SIZE / 2,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  pickerRow: {
-    flexDirection: 'row',
-    marginBottom: 16,
-  },
-
-  pickerButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    backgroundColor: '#fffef2',
-    marginHorizontal: 8,
-  },
-
-  pickerActive: {
-    borderColor: '#b7931d',
-    borderWidth: 2,
-  },
-
-  pickerText: {
-    fontFamily: 'Gaegu-Regular',
-    fontSize: 16,
-  },
-
-  captionInput: {
-    width: '90%',
-    backgroundColor: '#fff',
-    padding: 12,
-    borderRadius: 10,
-    marginBottom: 20,
-    fontFamily: 'Gaegu-Regular',
-  },
-
-  buttonRow: {
-    flexDirection: 'row',
-    marginBottom: 30,
-  },
-
-  saveBtn: {
-    flex: 1,
+    gap: 8,
     backgroundColor: '#b7931d',
-    paddingVertical: 20,
-    borderRadius: 12,
-    marginHorizontal: 10,
-    alignItems: 'center',
-    opacity: 1,
+    marginHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 14,
+    marginBottom: 16,
   },
 
-  previewBtn: {
-    flex: 1,
-    backgroundColor: '#fffef2',
-    paddingVertical: 20,
-    borderRadius: 12,
-    marginHorizontal: 10,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#b7931d',
-  },
-
-  btnText: {
+  takeText: {
     fontFamily: 'Gaegu-Bold',
-    fontSize: 16,
+    fontSize: 20,
+    color: '#fffef2',
+  },
+
+  chips: {
+    paddingHorizontal: 16,
+    gap: 8,
+    marginBottom: 20,
+  },
+
+  chip: {
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 16,
+    backgroundColor: '#fffef2',
+    borderWidth: 1,
+    borderColor: '#e8dab9',
+  },
+
+  chipActive: {
+    borderColor: '#b7931d',
+    backgroundColor: '#b7931d',
+  },
+
+  chipText: {
+    fontFamily: 'Gaegu-Regular',
+    fontSize: 15,
     color: '#5a4400',
   },
 
-  sectionTitle: {
-    fontSize: 22,
-    fontFamily: 'Gaegu-Bold',
-    alignSelf: 'flex-start',
-    marginLeft: 20,
-    marginBottom: 12,
+  chipTextActive: {
+    color: '#fffef2',
   },
 
-  emptyText: {
-    fontStyle: 'italic',
-    color: '#777',
-  },
-
-  memoryCard: {
-    width: FRAME_SIZE * 0.6,
-    marginBottom: 20,
-    alignItems: 'center',
-  },
-
-  cardFrame: {
-    position: 'absolute',
-    width: FRAME_SIZE * 0.6,
-    height: FRAME_SIZE * 0.6,
-  },
-
-  cardSelfie: {
-    width: FRAME_SIZE * 0.45,
-    height: FRAME_SIZE * 0.45,
-    marginTop: FRAME_SIZE * 0.1,
-    borderRadius: 6,
-  },
-
-  cardCaption: {
-    marginTop: 10,
+  errorText: {
+    color: '#a83232',
     fontFamily: 'Gaegu-Regular',
-    color: '#555',
+    textAlign: 'center',
+    paddingHorizontal: 20,
   },
 
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+  emptyCard: {
+    alignSelf: 'center',
+    width: cardWidth,
+    height: cardWidth * 1.15,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderColor: '#d8c48f',
+    alignItems: 'center',
     justifyContent: 'center',
-    alignItems: 'center',
+    transform: [{ rotate: '-2deg' }],
   },
 
-  widgetContainer: {
-    width: windowWidth * 0.8,
-    backgroundColor: '#fffef2',
-    borderRadius: 16,
-    padding: 20,
-    alignItems: 'center',
-  },
-
-  widgetTitle: {
-    fontFamily: 'Gaegu-Bold',
-    fontSize: 20,
-    marginBottom: 12,
-  },
-
-  widgetGrid: {
+  board: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-around',
-  },
-
-  widgetItem: {
-    alignItems: 'center',
-    margin: 8,
-  },
-
-  widgetImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    marginBottom: 4,
-  },
-
-  widgetName: {
-    fontFamily: 'Gaegu-Regular',
-    fontSize: 12,
-  },
-
-  closeWidgetBtn: {
-    marginTop: 16,
-    paddingVertical: 8,
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
-    backgroundColor: '#b7931d',
-    borderRadius: 8,
+    rowGap: 24,
   },
 
-  closeText: {
-    color: '#fff',
+  card: {
+    width: cardWidth,
+  },
+
+  meta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 10,
+    paddingHorizontal: 2,
+  },
+
+  metaGroup: {
+    flexShrink: 1,
+    fontFamily: 'Gaegu-Regular',
+    fontSize: 14,
+    color: '#8a7a55',
+  },
+
+  metaCount: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+
+  metaText: {
     fontFamily: 'Gaegu-Bold',
+    fontSize: 13,
+    color: '#8f741d',
   },
 });
