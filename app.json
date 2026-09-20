@@ -1,21 +1,40 @@
 {
   "expo": {
-    "name": "CliqueApp",
-    "slug": "CliqueApp",
+    "name": "Clique",
+    "slug": "clique",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "clique",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.arikthehacker.clique",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Clique uses the camera so you can take a memory for your group.",
+        "NSPhotoLibraryUsageDescription": "Clique uses your photos so you can pick a profile picture and share memories.",
+        "NSMicrophoneUsageDescription": "Clique uses the microphone when you record a video memory.",
+        "NSPhotoLibraryAddUsageDescription": "Clique saves memories you choose to your photo library.",
+        "NSCalendarsUsageDescription": "Clique reads your calendar to mark when you are busy. Event names never leave your phone.",
+        "NSCalendarsFullAccessUsageDescription": "Clique reads your calendar to mark when you are busy. Event names never leave your phone.",
+        "NSMotionUsageDescription": "Clique counts your steps for the daily streak. The count stays on your phone."
+      }
     },
     "android": {
+      "package": "com.arikthehacker.clique",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      }
+        "backgroundColor": "#F1E3C0"
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.READ_CALENDAR",
+        "android.permission.ACTIVITY_RECOGNITION"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -30,9 +49,44 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#F1E3C0"
         }
-      ]
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Clique uses the camera so you can take a memory for your group.",
+          "microphonePermission": "Clique uses the microphone when you record a video memory."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Clique uses your photos so you can pick a profile picture and share memories."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#b7931d"
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Clique saves memories you choose to your photo library.",
+          "savePhotosPermission": "Clique saves memories you choose to your photo library."
+        }
+      ],
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "Clique reads your calendar to mark when you are busy, so finding a time with your group is easier. Event names never leave your phone."
+        }
+      ],
+      "expo-font",
+      "expo-web-browser",
+      "expo-status-bar"
     ],
     "experiments": {
       "typedRoutes": true
