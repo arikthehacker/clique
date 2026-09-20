@@ -1,28 +1,16 @@
 /**
  * ==============================
- * FILE: app/components/BackButton.tsx
- * Last Updated: 2026-05-01
+ * FILE: src/components/BackButton.tsx
+ * Last Updated: 2026-09-18
  * ==============================
  *
  * PURPOSE:
- * This component gives screens a reusable back button that returns the user
- * to the previous route in the Expo Router navigation stack.
+ * A shared back button that returns to the previous screen.
  *
  * Includes:
- * - Expo Router back navigation
- * - Pressable button wrapper
- * - Simple text-based arrow label
- * - Absolute positioning near the top-left of the screen
- * - Soft transparent background so it stays visible without feeling heavy
- *
- * Notes:
- * - This keeps the back button styling consistent across onboarding screens.
- * - Haptics is imported but not used yet.
- * - Later, haptic feedback can be added inside onPress so every back action
- *   feels consistent with the rest of Clique.
+ * - Back label pinned to the top-left
+ * - Haptics on tap
  */
-
-import React from 'react';
 
 import {
   Pressable,
@@ -30,8 +18,8 @@ import {
   Text,
 } from 'react-native';
 
-import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import { useRouter } from 'expo-router';
 
 export default function BackButton() {
   const router = useRouter();
@@ -40,7 +28,7 @@ export default function BackButton() {
     // tiny tap feedback before leaving the screen
     Haptics.selectionAsync();
 
-    // sends user back one screen in the navigation stack
+    // back one screen
     router.back();
   };
 
